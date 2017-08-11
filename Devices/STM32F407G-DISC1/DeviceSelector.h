@@ -53,12 +53,12 @@
 
 // Memory
 #define FLASH_MEMORY_Base                   0x08000000
-#define FLASH_MEMORY_Size                   0x00080000  // 512KB
+#define FLASH_MEMORY_Size                   0x00100000  // 1MB
 #define SRAM1_MEMORY_Base                   0x20000000
-#define SRAM1_MEMORY_Size                   0x00018000  // 98KB
-#define ENABLE_CCM_RAM					    0
-#define FLASH_DEPLOYMENT_SECTOR_ADDRESS     {0x08040000, 0x08060000}
-#define FLASH_DEPLOYMENT_SECTOR_SIZE        {0x00020000, 0x00020000}
+#define SRAM1_MEMORY_Size                   0x0001C000  // 112KB
+#define ENABLE_CCM_RAM					    1
+#define FLASH_DEPLOYMENT_SECTOR_ADDRESS     {0x08040000, 0x08060000, 0x08080000, 0x080A0000, 0x080C0000, 0x080E0000}
+#define FLASH_DEPLOYMENT_SECTOR_SIZE        {0x00020000, 0x00020000, 0x00020000, 0x00020000, 0x00020000, 0x00020000}
 
 
 // Macro
