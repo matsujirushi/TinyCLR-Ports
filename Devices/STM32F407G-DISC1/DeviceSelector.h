@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef _DEVICE_FEZCERBERUS_H_
-#define _DEVICE_FEZCERBERUS_H_
+#ifndef _DEVICE_FEZ_H_
+#define _DEVICE_FEZ_H_
 
 #define PLATFORM_ARM_DEFINED
 
@@ -37,27 +37,27 @@
 #define INTERRUPT_END           STM32F4_Interrupt_Ended();
 
 // Device
-#define HAL_SYSTEM_NAME "FEZ Cerberus"
+#define HAL_SYSTEM_NAME "FEZ"
 
 // System clock
-#define SYSTEM_CLOCK_HZ                 168000000   // 84 MHz
-#define SYSTEM_CYCLE_CLOCK_HZ           168000000   // 84 MHz
+#define SYSTEM_CLOCK_HZ                  84000000   // 84 MHz
+#define SYSTEM_CYCLE_CLOCK_HZ            84000000   // 84 MHz
 #define SYSTEM_APB1_CLOCK_HZ             42000000   // 42 MHz
 #define SYSTEM_APB2_CLOCK_HZ             84000000   // 84 MHz
-#define SYSTEM_CRYSTAL_CLOCK_HZ          12000000   // 12 MHz external clock
+#define SYSTEM_CRYSTAL_CLOCK_HZ           8000000   //  8 MHz external clock
 #define SUPPLY_VOLTAGE_MV                    3300   // 3.3V supply
 #define CLOCK_COMMON_FACTOR               1000000   // GCD(SYSTEM_CLOCK_HZ, 1M)
-#define SLOW_CLOCKS_PER_SECOND          168000000   // 84 MHz
+#define SLOW_CLOCKS_PER_SECOND           84000000   // 84 MHz
 #define SLOW_CLOCKS_TEN_MHZ_GCD           1000000   // GCD(SLOW_CLOCKS_PER_SECOND, 10M)
 #define SLOW_CLOCKS_MILLISECOND_GCD          1000   // GCD(SLOW_CLOCKS_PER_SECOND, 1k)
 
 // Memory
 #define FLASH_MEMORY_Base                   0x08000000
-#define FLASH_MEMORY_Size                   0x00100000  // 1 MB
+#define FLASH_MEMORY_Size                   0x00080000  // 512KB
 #define SRAM1_MEMORY_Base                   0x20000000
-#define SRAM1_MEMORY_Size                   0x00020000  // 128 KB
-#define ENABLE_CCM_RAM                      1
-#define FLASH_DEPLOYMENT_SECTOR_ADDRESS     {0x080C0000, 0x080E0000}
+#define SRAM1_MEMORY_Size                   0x00018000  // 98KB
+#define ENABLE_CCM_RAM					    0
+#define FLASH_DEPLOYMENT_SECTOR_ADDRESS     {0x08040000, 0x08060000}
 #define FLASH_DEPLOYMENT_SECTOR_SIZE        {0x00020000, 0x00020000}
 
 
@@ -84,7 +84,7 @@
 #define TOTAL_PWM_CONTROLLER                 4
 #define STM32F4_PWM                     {   {TIM1  ,  0x12,     { _P(A, 8) , _P(A, 9) , _P(A,10) , _P_NONE_} ,  { false, false, false, false }, 0.0, 0.0, {0.0, 0.0, 0.0, 0.0}, 0, 0} ,\
                                             {TIM2  ,  0x12,     { _P(A, 0) , _P(A, 1) , _P(A, 2) , _P(A, 3)} ,  { false, false, false, false }, 0.0, 0.0, {0.0, 0.0, 0.0, 0.0}, 0, 0} ,\
-                                            {TIM3  ,  0x22,     { _P(C, 6) , _P(C, 7) , _P(C, 8) , _P(C, 9)} ,  { false, false, false, false }, 0.0, 0.0, {0.0, 0.0, 0.0, 0.0}, 0, 0} ,\
+                                            {TIM3  ,  0x22,     { _P(C, 6) , _P(B, 5) , _P(C, 8) , _P(C, 9)} ,  { false, false, false, false }, 0.0, 0.0, {0.0, 0.0, 0.0, 0.0}, 0, 0} ,\
                                             {TIM4  ,  0x22,     { _P(B, 6) , _P(B, 7) , _P(B, 8) , _P(B, 9)} ,  { false, false, false, false }, 0.0, 0.0, {0.0, 0.0, 0.0, 0.0}, 0, 0} }
 
 // I2C
@@ -113,7 +113,7 @@
 #define USB_VENDOR_ID                   0x1B9F
 #define USB_PRODUCT_ID                  0x0110
 #define USB_MANUFACTURER_NAME           {'G', 'H', 'I', ' ', 'E', 'l', 'e', 'c', 't', 'r', 'o', 'n', 'i', 'c', 's', ',', ' ', 'L', 'L', 'C'}
-#define USB_PRODUCT_NAME                {'F', 'E', 'Z', ' ', 'C', 'e', 'r', 'b', 'e', 'r', 'u', 's'}
+#define USB_PRODUCT_NAME                {'F', 'E', 'Z'}
 #define USB_DISPLAY_NAME                USB_PRODUCT_NAME
 #define USB_FRIENDLY_NAME               USB_PRODUCT_NAME
 
