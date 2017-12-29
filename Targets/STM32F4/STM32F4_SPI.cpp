@@ -14,6 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifdef INCLUDE_SPI
+
 #include "STM32F4.h"
 #include <string.h>
 
@@ -584,3 +586,5 @@ TinyCLR_Result STM32F4_Spi_GetSupportedDataBitLengths(const TinyCLR_Spi_Provider
 
     return TinyCLR_Result::Success;
 }
+
+#endif

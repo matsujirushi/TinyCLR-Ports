@@ -32,11 +32,17 @@
 #define DEBUGGER_FORCE_API STM32F4_UsbClient_GetApi()
 #define DEBUGGER_FORCE_INDEX USB_DEBUGGER_INDEX
 
-#define RUN_APP_PIN PIN(B, 7)
-#define RUN_APP_PULL TinyCLR_Gpio_PinDriveMode::InputPullUp
-#define RUN_APP_STATE TinyCLR_Gpio_PinValue::High
+//#define RUN_APP_PIN PIN(B, 7)
+//#define RUN_APP_PULL TinyCLR_Gpio_PinDriveMode::InputPullUp
+//#define RUN_APP_STATE TinyCLR_Gpio_PinValue::High
+#define RUN_APP_FORCE_STATE false
 
-#define DEPLOYMENT_SECTORS { { 0x06, 0x08040000, 0x00020000 }, { 0x07, 0x08060000, 0x00020000 }, { 0x08, 0x08080000, 0x00020000 }, { 0x09, 0x080A0000, 0x00020000 }, { 0x0A, 0x080C0000, 0x00020000 }, { 0x0B, 0x080E0000, 0x00020000 } }
+#define DEPLOYMENT_SECTORS { { 0x06, 0x08040000, 0x00020000 }, \
+                             { 0x07, 0x08060000, 0x00020000 }, \
+                             { 0x08, 0x08080000, 0x00020000 }, \
+                             { 0x09, 0x080A0000, 0x00020000 }, \
+                             { 0x0A, 0x080C0000, 0x00020000 }, \
+                             { 0x0B, 0x080E0000, 0x00020000 } }
 
 #define STM32F4_SYSTEM_CLOCK_HZ 168000000
 #define STM32F4_AHB_CLOCK_HZ 168000000
@@ -68,9 +74,9 @@
                          }
 
 //#define INCLUDE_SPI
-#define STM32F4_SPI_SCLK_PINS { { PIN(B, 3), AF(5) }, { PIN(B, 13), AF(5) } }
-#define STM32F4_SPI_MISO_PINS { { PIN(B, 4), AF(5) }, { PIN(B, 14), AF(5) } }
-#define STM32F4_SPI_MOSI_PINS { { PIN(B, 5), AF(5) }, { PIN(B, 15), AF(5) } }
+//#define STM32F4_SPI_SCLK_PINS { { PIN(B, 3), AF(5) }, { PIN(B, 13), AF(5) } }
+//#define STM32F4_SPI_MISO_PINS { { PIN(B, 4), AF(5) }, { PIN(B, 14), AF(5) } }
+//#define STM32F4_SPI_MOSI_PINS { { PIN(B, 5), AF(5) }, { PIN(B, 15), AF(5) } }
 
 #define INCLUDE_UART
 #define STM32F4_UART_TX_BUFFER_SIZE 256
