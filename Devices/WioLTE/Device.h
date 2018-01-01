@@ -15,6 +15,7 @@
 #pragma once
 
 #define STM32F405xx 1
+#define DEVICE_WIOLTE
 
 #include <STM32F4.h>
 

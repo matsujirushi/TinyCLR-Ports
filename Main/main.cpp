@@ -14,6 +14,9 @@
 
 #include <TinyCLR.h>
 #include <Device.h>
+#ifdef DEVICE_WIOLTE
+#include <WioLTE_ApiInfo.h>
+#endif
 
 #define TARGET(a) CONCAT(DEVICE_TARGET, a)
 
@@ -63,6 +66,10 @@ void OnSoftReset(const TinyCLR_Api_Provider* apiProvider) {
 
 #ifdef INCLUDE_USBCLIENT
     apiProvider->Add(apiProvider, TARGET(_UsbClient_GetApi)());
+#endif
+
+#ifdef DEVICE_WIOLTE
+	apiProvider->Add(apiProvider, WioLTE_GetApi());
 #endif
 
     ::apiProvider = apiProvider;
