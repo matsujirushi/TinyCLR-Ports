@@ -2,4 +2,4 @@
 
 #include <TinyCLR.h>
 
-extern const TinyCLR_Interop_Assembly Interop_LedBlink2;
+extern const TinyCLR_Interop_Assembly Interop_Seeed_TinyCLR_WioLTE;

@@ -143,16 +143,16 @@ static TinyCLR_Result LedSetRGB___VOID__U1__U1__U1(const TinyCLR_Interop_MethodD
 }
 
 static const TinyCLR_Interop_MethodHandler methods[] = {
-	nullptr,
-	nullptr,
-	nullptr,
 	Init___VOID,
 	LedSetRGB___VOID__U1__U1__U1,
 	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
 };
 
-const TinyCLR_Interop_Assembly Interop_LedBlink2 = {
-	"LedBlink2",
-	0xA4582B78,
+const TinyCLR_Interop_Assembly Interop_Seeed_TinyCLR_WioLTE = {
+	"Seeed.TinyCLR.WioLTE",
+	0x3B3482DE,
 	methods
 };

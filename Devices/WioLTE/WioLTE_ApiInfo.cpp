@@ -7,11 +7,11 @@ static TinyCLR_Api_Info ApiInfo;
 const TinyCLR_Api_Info* WioLTE_GetApi()
 {
 	ApiInfo.Author = "Seeed";
-	ApiInfo.Name = "Seeed.TinyCLR.NativeApis.WioLTE.WioLTEProvider";
+	ApiInfo.Name = "Seeed.TinyCLR.NativeApis.WioLTE.WioLTE";
 	ApiInfo.Type = TinyCLR_Api_Type::Custom;
 	ApiInfo.Version = 0;
 	ApiInfo.Count = 1;
-	ApiInfo.Implementation = &Interop_LedBlink2;
+	ApiInfo.Implementation = &Interop_Seeed_TinyCLR_WioLTE;
 
 	return &ApiInfo;
 }
