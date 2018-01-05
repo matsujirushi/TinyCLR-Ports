@@ -149,10 +149,19 @@ static const TinyCLR_Interop_MethodHandler methods[] = {
 	nullptr,
 	nullptr,
 	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
+	nullptr,
 };
 
 const TinyCLR_Interop_Assembly Interop_Seeed_TinyCLR_WioLTE = {
 	"Seeed.TinyCLR.WioLTE",
-	0x3B3482DE,
+	0x5AC58C96,
 	methods
 };
