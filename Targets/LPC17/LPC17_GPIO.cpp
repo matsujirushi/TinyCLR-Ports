@@ -250,7 +250,7 @@ bool LPC17_Gpio_ConfigurePin(int32_t pin, LPC17_Gpio_Direction pinDir, LPC17_Gpi
         *IOCON_Register &= 0xFFFEFF60; // Clear mask to clear pullResistor, Alt Function, Digital Status, and ADC/DAC Mode before resetting
 
         // If pin is GPIO then the pin must be set to Digital Mode Vs. Analog Mode
-        if (alternateFunction == LPC17_Gpio_PinFunction::PinFunction0 || alternateFunction == LPC17_Gpio_PinFunction::PinFunction3)
+        if (alternateFunction == LPC17_Gpio_PinFunction::PinFunction0 || (alternateFunction == LPC17_Gpio_PinFunction::PinFunction3 && (pin == PIN(0, 25) || pin == PIN(0, 26))))
             digitalMode = 1; // pin is set Digital Mode
         else
             digitalMode = 0; // pin is set to Analog Mode
@@ -426,7 +426,7 @@ TinyCLR_Result LPC17_Gpio_SetDebounceTimeout(const TinyCLR_Gpio_Provider* self, 
         return TinyCLR_Result::ArgumentOutOfRange;
 
     if (debounceTime > 0 && debounceTime < 10000) {
-        g_debounceTicksPin[pin] = LPC17_Time_MillisecondsToTicks(nullptr, (uint64_t)debounceTime);
+        g_debounceTicksPin[pin] = (uint32_t)LPC17_Time_GetProcessorTicksForTime(nullptr, (uint64_t)debounceTime * 1000 * 10);
         return TinyCLR_Result::Success;
     }
 
