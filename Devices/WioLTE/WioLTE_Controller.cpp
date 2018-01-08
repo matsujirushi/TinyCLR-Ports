@@ -10,7 +10,7 @@ extern "C" void IDelayLoop(int32_t iterations);
 
 static void TimeDelay(uint64_t nanoseconds)
 {
-	int32_t iterations = (int32_t)(nanoseconds * STM32F4_AHB_CLOCK_HZ / 1000000000 / 2);
+	int32_t iterations = (int32_t)(nanoseconds * STM32F4_AHB_CLOCK_HZ / 1000000000);
 	IDelayLoop(iterations - 5);
 }
 
@@ -129,9 +129,9 @@ static TinyCLR_Result Init___VOID(const TinyCLR_Interop_MethodData md)
 static TinyCLR_Result LedSetRGB___VOID__U1__U1__U1(const TinyCLR_Interop_MethodData md)
 {
 	auto ip = (const TinyCLR_Interop_Provider*)md.ApiProvider.FindDefault(&md.ApiProvider, TinyCLR_Api_Type::InteropProvider);
-	TinyCLR_Interop_ManagedValue r;
-	TinyCLR_Interop_ManagedValue g;
-	TinyCLR_Interop_ManagedValue b;
+	TinyCLR_Interop_ClrValue r;
+	TinyCLR_Interop_ClrValue g;
+	TinyCLR_Interop_ClrValue b;
 	ip->GetArgument(ip, md.Stack, 1, r);
 	ip->GetArgument(ip, md.Stack, 2, g);
 	ip->GetArgument(ip, md.Stack, 3, b);
