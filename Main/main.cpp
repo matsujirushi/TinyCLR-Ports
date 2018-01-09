@@ -15,7 +15,7 @@
 #include <TinyCLR.h>
 #include <Device.h>
 #ifdef DEVICE_WIOLTE
-#include <WioLTE_ApiInfo.h>
+#include <Seeed_TinyCLR_WioLTE_ApiInfo.h>
 #endif
 
 #define TARGET(a) CONCAT(DEVICE_TARGET, a)
@@ -69,7 +69,7 @@ void OnSoftReset(const TinyCLR_Api_Provider* apiProvider) {
 #endif
 
 #ifdef DEVICE_WIOLTE
-	apiProvider->Add(apiProvider, WioLTE_GetApi());
+	apiProvider->Add(apiProvider, Seeed_TinyCLR_WioLTE_GetApi());
 #endif
 
     ::apiProvider = apiProvider;

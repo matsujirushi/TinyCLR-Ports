@@ -1,5 +1,5 @@
 #include <TinyCLR.h>
-#include "WioLTE_Controller.h"
+#include "Seeed_TinyCLR_WioLTE.h"
 
 #include <Device.h>
 
@@ -113,7 +113,7 @@ static void SK6812SetSingleLED(int32_t pin, uint8_t r, uint8_t g, uint8_t b)
 #define RGB_LED_PWR_PIN	(8)
 #define RGB_LED_PIN		(17)
 
-static TinyCLR_Result Init___VOID(const TinyCLR_Interop_MethodData md)
+TinyCLR_Result Interop_Seeed_TinyCLR_WioLTE_Seeed_TinyCLR_WioLTE_WioLTENative::Init___VOID(const TinyCLR_Interop_MethodData md)
 {
 	// RGB_LED_PWR_PIN
 	GpioSetDirection(RGB_LED_PWR_PIN, GPIO_DIRECTION_OUTPUT);
@@ -126,7 +126,7 @@ static TinyCLR_Result Init___VOID(const TinyCLR_Interop_MethodData md)
 	return TinyCLR_Result::Success;
 }
 
-static TinyCLR_Result LedSetRGB___VOID__U1__U1__U1(const TinyCLR_Interop_MethodData md)
+TinyCLR_Result Interop_Seeed_TinyCLR_WioLTE_Seeed_TinyCLR_WioLTE_WioLTENative::LedSetRGB___VOID__U1__U1__U1(const TinyCLR_Interop_MethodData md)
 {
 	auto ip = (const TinyCLR_Interop_Provider*)md.ApiProvider.FindDefault(&md.ApiProvider, TinyCLR_Api_Type::InteropProvider);
 	TinyCLR_Interop_ClrValue r;
@@ -141,27 +141,3 @@ static TinyCLR_Result LedSetRGB___VOID__U1__U1__U1(const TinyCLR_Interop_MethodD
 
 	return TinyCLR_Result::Success;
 }
-
-static const TinyCLR_Interop_MethodHandler methods[] = {
-	Init___VOID,
-	LedSetRGB___VOID__U1__U1__U1,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
-	nullptr,
-};
-
-const TinyCLR_Interop_Assembly Interop_Seeed_TinyCLR_WioLTE = {
-	"Seeed.TinyCLR.WioLTE",
-	0x5AC58C96,
-	methods
-};
