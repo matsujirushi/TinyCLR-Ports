@@ -1,8 +1,9 @@
 # Build
-Build/
-Core/TinyCLR*
-Core/License.txt
-CMSIS/
+/Build/
+/Core/TinyCLR*
+/Core/License.txt
+/CMSIS/
 
 # Visual Studio
-.vs/
+/.vs/*
+!/.vs/tasks.vs.json

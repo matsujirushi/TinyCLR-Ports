@@ -1,12 +1,21 @@
 {
   "configurations": [
     {
-      "name": "Windows",
+      "inheritEnvironments": [
+        "gcc_arm"
+      ],
+      "name": "gccarm",
       "includePath": [
-        "C:\\Program Files (x86)\\GNU Tools ARM Embedded\\6 2017-q2-update\\lib\\gcc\\arm-none-eabi\\6.3.1\\include",
-        "${workspaceRoot}\\Targets\\STM32F4",
-        "${workspaceRoot}\\Devices\\WioLTE",
-        "${workspaceRoot}\\Core"
+        "${workspaceRoot}/CMSIS/CMSIS/Include",
+        "${workspaceRoot}/Targets/STM32F4",
+        "${workspaceRoot}/Devices/WioLTE",
+        "${workspaceRoot}/Core",
+        "C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/Linux/gcc_arm/arm-none-eabi/include/c++/6.3.1",
+        "C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/Linux/gcc_arm/arm-none-eabi/include/c++/6.3.1/arm-none-eabi/thumb/v7e-m/fpv4-sp/hard",
+        "C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/Linux/gcc_arm/arm-none-eabi/include/c++/6.3.1/backward",
+        "C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/Linux/gcc_arm/lib/gcc/arm-none-eabi/6.3.1/include",
+        "C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/Linux/gcc_arm/lib/gcc/arm-none-eabi/6.3.1/include-fixed",
+        "C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/Linux/gcc_arm/arm-none-eabi/include"
       ]
     }
   ]

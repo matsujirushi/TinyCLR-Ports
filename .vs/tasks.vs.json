@@ -1,0 +1,23 @@
+{
+  "version": "0.2.1",
+  "tasks": [
+    {
+      "taskName": "Build WioLTE",
+      "appliesTo": "build.bat",
+      "type": "default",
+      "command": "${env.COMSPEC}",
+      "args": [
+        "build WioLTE build"
+      ]
+    },
+    {
+      "taskName": "Clean WioLTE",
+      "appliesTo": "build.bat",
+      "type": "default",
+      "command": "${env.COMSPEC}",
+      "args": [
+        "build WioLTE clean"
+      ]
+    }
+  ]
+}
