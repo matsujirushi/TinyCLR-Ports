@@ -1,7 +1,9 @@
 #include <TinyCLR.h>
 #include "Seeed_TinyCLR_WioLTE.h"
 
-#include <Device.h>
+#include "Device.h"
+#include "slre.901d42c/slre.h"
+#include "slre.901d42c/slre.c"
 
 ////////////////////////////////////////////////////////////////////////////////
 // from Targets/STM32F4/STM32F4_Time.cpp
@@ -112,6 +114,21 @@ static void SK6812SetSingleLED(int32_t pin, uint8_t r, uint8_t g, uint8_t b)
 
 #define RGB_LED_PWR_PIN	(8)
 #define RGB_LED_PIN		(17)
+
+TinyCLR_Result Interop_Seeed_TinyCLR_WioLTE_Seeed_TinyCLR_WioLTE_WioLTENative::slre_match___STATIC___I4__STRING__STRING(const TinyCLR_Interop_MethodData md)
+{
+	auto ip = (const TinyCLR_Interop_Provider*)md.ApiProvider.FindDefault(&md.ApiProvider, TinyCLR_Api_Type::InteropProvider);
+	TinyCLR_Interop_ClrValue regexp;
+	TinyCLR_Interop_ClrValue buf;
+	TinyCLR_Interop_ClrValue ret;
+	ip->GetArgument(ip, md.Stack, 0, regexp);
+	ip->GetArgument(ip, md.Stack, 1, buf);
+	ip->GetReturn(ip, md.Stack, ret);
+
+	ret.Data.Numeric->I4 = slre_match(regexp.Data.String.Data, buf.Data.String.Data, buf.Data.String.Length, NULL, 0, 0);
+
+	return TinyCLR_Result::Success;
+}
 
 TinyCLR_Result Interop_Seeed_TinyCLR_WioLTE_Seeed_TinyCLR_WioLTE_WioLTENative::Init___VOID(const TinyCLR_Interop_MethodData md)
 {
