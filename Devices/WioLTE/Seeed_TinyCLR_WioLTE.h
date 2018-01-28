@@ -9,6 +9,11 @@ struct Interop_Seeed_TinyCLR_WioLTE_Seeed_TinyCLR_WioLTE_AtSerial {
     static const size_t FIELD____ReadedByte___U1 = 4;
 };
 
+struct Interop_Seeed_TinyCLR_WioLTE_Seeed_TinyCLR_WioLTE_AtSerial__ResponseCompare {
+    static const size_t FIELD___Type___SeeedTinyCLRWioLTEAtSerialResponseCompareType = 1;
+    static const size_t FIELD___Pattern___STRING = 2;
+};
+
 struct Interop_Seeed_TinyCLR_WioLTE_Seeed_TinyCLR_WioLTE_WioLTE {
     static const size_t FIELD____Native___SeeedTinyCLRWioLTEWioLTENative = 1;
     static const size_t FIELD____ModulePwrPin___GHIElectronicsTinyCLRDevicesGHIElectronicsTinyCLRDevicesGpioGpioPin = 2;

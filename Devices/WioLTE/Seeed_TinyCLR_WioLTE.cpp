@@ -27,6 +27,9 @@ static const TinyCLR_Interop_MethodHandler methods[] = {
     nullptr,
     nullptr,
     nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
     Interop_Seeed_TinyCLR_WioLTE_Seeed_TinyCLR_WioLTE_WioLTENative::Init___VOID,
     Interop_Seeed_TinyCLR_WioLTE_Seeed_TinyCLR_WioLTE_WioLTENative::LedSetRGB___VOID__U1__U1__U1,
     nullptr,
@@ -41,6 +44,6 @@ static const TinyCLR_Interop_MethodHandler methods[] = {
 
 const TinyCLR_Interop_Assembly Interop_Seeed_TinyCLR_WioLTE = {
     "Seeed.TinyCLR.WioLTE",
-    0xF44F63CC,
+    0xED6C2E72,
     methods
 };
