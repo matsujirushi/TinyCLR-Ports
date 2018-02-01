@@ -4,6 +4,7 @@
 #include "Device.h"
 #include "slre.901d42c/slre.h"
 #include "slre.901d42c/slre.c"
+#include <alloca.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // from Targets/STM32F4/STM32F4_Time.cpp
@@ -128,6 +129,41 @@ TinyCLR_Result Interop_Seeed_TinyCLR_WioLTE_Seeed_TinyCLR_WioLTE_WioLTENative::s
 	ret.Data.Numeric->I4 = slre_match(regexp.Data.String.Data, buf.Data.String.Data, buf.Data.String.Length, NULL, 0, 0);
 
 	return TinyCLR_Result::Success;
+}
+
+TinyCLR_Result Interop_Seeed_TinyCLR_WioLTE_Seeed_TinyCLR_WioLTE_WioLTENative::slre_match2___STATIC___STRING__STRING__STRING(const TinyCLR_Interop_MethodData md)
+{
+	auto ip = (const TinyCLR_Interop_Provider*)md.ApiProvider.FindDefault(&md.ApiProvider, TinyCLR_Api_Type::InteropProvider);
+	TinyCLR_Interop_ClrValue regexp;
+	TinyCLR_Interop_ClrValue buf;
+	TinyCLR_Interop_ClrValue ret;
+	ip->GetArgument(ip, md.Stack, 0, regexp);
+	ip->GetArgument(ip, md.Stack, 1, buf);
+	ip->GetReturn(ip, md.Stack, ret);
+
+	struct slre_cap cap;
+	cap.ptr = NULL;
+	int index = slre_match(regexp.Data.String.Data, buf.Data.String.Data, buf.Data.String.Length, &cap, 1, 0);
+	if (index == SLRE_NO_MATCH) return TinyCLR_Result::Success;
+	if (index < 0) return TinyCLR_Result::NotSupported;
+
+	char* str;
+	if (cap.ptr == NULL)
+	{
+		str = (char*)alloca(1);
+		str[0] = '\0';
+	}
+	else
+	{
+		str = (char*)alloca(cap.len + 1);
+		memcpy(str, cap.ptr, cap.len);
+		str[cap.len] = '\0';
+	}
+
+	TinyCLR_Interop_ClrValue clrStr;
+	ip->CreateString(ip, str, clrStr);
+	ip->AssignObjectReference(ip, ret, clrStr.Object);
+
 }
 
 TinyCLR_Result Interop_Seeed_TinyCLR_WioLTE_Seeed_TinyCLR_WioLTE_WioLTENative::Init___VOID(const TinyCLR_Interop_MethodData md)

@@ -35,6 +35,7 @@ struct Interop_Seeed_TinyCLR_WioLTE_Seeed_TinyCLR_WioLTE_WioLTENative {
     static TinyCLR_Result LedSetRGB___VOID__U1__U1__U1(const TinyCLR_Interop_MethodData md);
 
     static TinyCLR_Result slre_match___STATIC___I4__STRING__STRING(const TinyCLR_Interop_MethodData md);
+    static TinyCLR_Result slre_match2___STATIC___STRING__STRING__STRING(const TinyCLR_Interop_MethodData md);
 };
 
 struct Interop_Seeed_TinyCLR_WioLTE_System_Diagnostics_Stopwatch {
