@@ -92,9 +92,10 @@ const TinyCLR_Api_Info* LPC24_Pwm_GetApi() {
         pwmProviders[i]->SetPulseParameters = &LPC24_Pwm_SetPulseParameters;
         pwmProviders[i]->GetMinFrequency = &LPC24_Pwm_GetMinFrequency;
         pwmProviders[i]->GetMaxFrequency = &LPC24_Pwm_GetMaxFrequency;
-        pwmProviders[i]->GetActualFrequency = &LPC24_Pwm_GetActualFrequency;
         pwmProviders[i]->GetPinCount = &LPC24_Pwm_GetPinCount;
     }
+
+    LPC24_Pwm_Reset();
 
     pwmApi.Author = "GHI Electronics, LLC";
     pwmApi.Name = "GHIElectronics.TinyCLR.NativeApis.LPC24.PwmProvider";
@@ -138,6 +139,8 @@ TinyCLR_Result LPC24_Pwm_AcquirePin(const TinyCLR_Pwm_Provider* self, int32_t pi
         PWM1PCR |= (1 << (9 + (g_PwmController[self->Index].match[pin]))); // To enable output on the proper channel
     }
 
+    g_PwmController[self->Index].isOpened[pin] = true;
+
     return TinyCLR_Result::Success;;
 }
 
@@ -145,6 +148,8 @@ TinyCLR_Result LPC24_Pwm_ReleasePin(const TinyCLR_Pwm_Provider* self, int32_t pi
     int32_t actualPin = LPC24_Pwm_GetGpioPinForChannel(self, pin);
 
     LPC24_Gpio_ClosePin(actualPin);
+
+    g_PwmController[self->Index].isOpened[pin] = false;
 
     return TinyCLR_Result::Success;
 }
@@ -400,14 +405,6 @@ void LPC24_Pwm_Reset() {
 
     for (auto controller = 0; controller < TOTAL_PWM_CONTROLLER; controller++) {
         LPC24_Pwm_ResetController(controller);
-
-        for (int p = 0; p < MAX_PWM_PER_CONTROLLER; p++) {
-            if (g_PwmController[pwmProviders[controller]->Index].gpioPin[p].number != PIN_NONE) {
-                // Reset PWM and close pin
-                LPC24_Pwm_DisablePin(pwmProviders[controller], p);
-                LPC24_Pwm_ReleasePin(pwmProviders[controller], p);
-            }
-        }
     }
 }
 
@@ -420,14 +417,29 @@ void LPC24_Pwm_ResetController(int32_t controller) {
             g_PwmController[pwmProviders[controller]->Index].channel[p] = controller;
             g_PwmController[pwmProviders[controller]->Index].match[p] = p;
 #if defined(LPC2388) || defined(LPC2387)
-            g_PwmController[pwmProviders[controller]->Index].matchAddress[p] = (uint32_t*)(PWM1MR1 + (p * 4));
+            if (p < 3)
+                g_PwmController[pwmProviders[controller]->Index].matchAddress[p] = (uint32_t*)(PWM1MR1 + (p * 4));
+            else
+                g_PwmController[pwmProviders[controller]->Index].matchAddress[p] = (uint32_t*)(PWM1MR4 + ((p - 3) * 4));
 #else
-            g_PwmController[pwmProviders[controller]->Index].matchAddress[p] = pwmProviders[controller]->Index == 0 ? (uint32_t*)(PWM0MR1 + (p * 4)) : (uint32_t*)(PWM1MR1 + (p * 4));
+            if (p < 3)
+                g_PwmController[pwmProviders[controller]->Index].matchAddress[p] = pwmProviders[controller]->Index == 0 ? (uint32_t*)(PWM0MR1 + (p * 4)) : (uint32_t*)(PWM1MR1 + (p * 4));
+            else
+                g_PwmController[pwmProviders[controller]->Index].matchAddress[p] = pwmProviders[controller]->Index == 0 ? (uint32_t*)(PWM0MR4 + ((p - 3) * 4)) : (uint32_t*)(PWM1MR4 + ((p - 3) * 4));
 #endif
             g_PwmController[pwmProviders[controller]->Index].outputEnabled[p] = false;
             g_PwmController[pwmProviders[controller]->Index].invert[p] = false;
             g_PwmController[pwmProviders[controller]->Index].frequency = 0.0;
             g_PwmController[pwmProviders[controller]->Index].dutyCycle[p] = 0.0;
+            if (g_PwmController[controller].isOpened[p] == true) {
+                if (controller == 0)
+                    PWM0PCR &= ~(1 << (9 + (g_PwmController[controller].match[p]))); // To disable output on the proper channel
+                if (controller == 1)
+                    PWM1PCR &= ~(1 << (9 + (g_PwmController[controller].match[p]))); // To disable output on the proper channel
+
+                LPC24_Pwm_DisablePin(pwmProviders[controller], p);
+                LPC24_Pwm_ReleasePin(pwmProviders[controller], p);
+            }
         }
     }
 }

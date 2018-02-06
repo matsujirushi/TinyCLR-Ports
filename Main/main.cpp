@@ -20,9 +20,11 @@
 
 #define TARGET(a) CONCAT(DEVICE_TARGET, a)
 
-const TinyCLR_Api_Provider* apiProvider;
+const TinyCLR_Api_Provider* apiProvider = nullptr;
 
 void OnSoftReset(const TinyCLR_Api_Provider* apiProvider) {
+    ::apiProvider = apiProvider;
+
 #ifdef INCLUDE_ADC
     apiProvider->Add(apiProvider, TARGET(_Adc_GetApi)());
     apiProvider->SetDefaultSelector(apiProvider, TinyCLR_Api_Type::AdcProvider, TARGET(_Adc_GetApi)()->Name);
@@ -71,13 +73,10 @@ void OnSoftReset(const TinyCLR_Api_Provider* apiProvider) {
 #ifdef DEVICE_WIOLTE
 	apiProvider->Add(apiProvider, Seeed_TinyCLR_WioLTE_GetApi());
 #endif
-
-    ::apiProvider = apiProvider;
 }
 
 int main() {
     TARGET(_Startup_Initialize)();
-
 
     uint8_t* heapStart;
     size_t heapLength;
@@ -85,12 +84,13 @@ int main() {
     TARGET(_Startup_GetHeap)(heapStart, heapLength);
     TinyCLR_Startup_AddHeapRegion(heapStart, heapLength);
 
-
     const TinyCLR_Api_Info* debuggerApi;
     size_t debuggerIndex;
 
-    TARGET(_Startup_GetDebugger)(debuggerApi, debuggerIndex);
-    TinyCLR_Startup_SetDebugger(debuggerApi, debuggerIndex);
+    apiProvider = nullptr;
+
+    TARGET(_Startup_GetDebuggerTransportProvider)(debuggerApi, debuggerIndex);
+    TinyCLR_Startup_SetDebuggerTransportProvider(debuggerApi, debuggerIndex);
 
 
     TinyCLR_Startup_SetDeviceInformation(DEVICE_NAME, DEVICE_MANUFACTURER, DEVICE_VERSION);

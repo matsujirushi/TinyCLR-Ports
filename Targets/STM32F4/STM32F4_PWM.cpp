@@ -45,9 +45,6 @@ void STM32F4_Pwm_Reset();
 
 #define STM32F4_MIN_PWM_FREQUENCY 1
 
-#define pwmController(x)  g_PwmController[x]
-
-
 typedef  TIM_TypeDef* ptr_TIM_TypeDef;
 
 struct PwmController {
@@ -55,6 +52,8 @@ struct PwmController {
     STM32F4_Gpio_Pin         gpioPin[PWM_PER_CONTROLLER];
 
     bool                invert[PWM_PER_CONTROLLER];
+    bool                isOpened[PWM_PER_CONTROLLER];
+
     double              actualFreq;
     double              theoryFreq;
     double              dutyCycle[PWM_PER_CONTROLLER];
@@ -93,7 +92,6 @@ const TinyCLR_Api_Info* STM32F4_Pwm_GetApi() {
         pwmProviders[i]->SetDesiredFrequency = &STM32F4_Pwm_SetDesiredFrequency;
         pwmProviders[i]->GetMinFrequency = &STM32F4_Pwm_GetMinFrequency;
         pwmProviders[i]->GetMaxFrequency = &STM32F4_Pwm_GetMaxFrequency;
-        pwmProviders[i]->GetActualFrequency = &STM32F4_Pwm_GetActualFrequency;
         pwmProviders[i]->GetPinCount = &STM32F4_Pwm_GetPinCount;
     }
 
@@ -112,7 +110,7 @@ const TinyCLR_Api_Info* STM32F4_Pwm_GetApi() {
 //--//
 
 TinyCLR_Result STM32F4_Pwm_AcquirePin(const TinyCLR_Pwm_Provider* self, int32_t pin) {
-    ptr_TIM_TypeDef treg = pwmController(self->Index).timerdef;
+    ptr_TIM_TypeDef treg = g_PwmController[self->Index].timerdef;
 
     auto actualPin = STM32F4_Pwm_GetGpioPinForChannel(self, pin);
 
@@ -128,7 +126,7 @@ TinyCLR_Result STM32F4_Pwm_AcquirePin(const TinyCLR_Pwm_Provider* self, int32_t 
         *enReg |= enBit; // enable timer clock
         treg->CR1 = TIM_CR1_URS | TIM_CR1_ARPE; // double buffered update
         treg->EGR = TIM_EGR_UG; // enforce first update
-        if (pwmController(self->Index).timer == 1 || pwmController(self->Index).timer == 8) {
+        if (g_PwmController[self->Index].timer == 1 || g_PwmController[self->Index].timer == 8) {
             treg->BDTR |= TIM_BDTR_MOE; // main output enable (timer 1 & 8 only)
         }
     }
@@ -142,11 +140,13 @@ TinyCLR_Result STM32F4_Pwm_AcquirePin(const TinyCLR_Pwm_Provider* self, int32_t 
     if (pin & 2) reg = &treg->CCMR2; // 2 or 3
     *reg |= mode;
 
+    g_PwmController[self->Index].isOpened[pin] = true;
+
     return TinyCLR_Result::Success;
 }
 
 TinyCLR_Result STM32F4_Pwm_ReleasePin(const TinyCLR_Pwm_Provider* self, int32_t pin) {
-    ptr_TIM_TypeDef treg = pwmController(self->Index).timerdef;
+    ptr_TIM_TypeDef treg = g_PwmController[self->Index].timerdef;
 
     auto actualPin = STM32F4_Pwm_GetGpioPinForChannel(self, pin);
 
@@ -164,6 +164,8 @@ TinyCLR_Result STM32F4_Pwm_ReleasePin(const TinyCLR_Pwm_Provider* self, int32_t 
     }
 
     STM32F4_GpioInternal_ClosePin(actualPin->number);
+
+    g_PwmController[self->Index].isOpened[pin] = false;
 
     return TinyCLR_Result::Success;
 }
@@ -187,9 +189,9 @@ double STM32F4_Pwm_GetActualFrequency(const TinyCLR_Pwm_Provider* self) {
     uint32_t period = 0;
     uint32_t scale = 0;
 
-    double freq = pwmController(self->Index).theoryFreq;
+    double freq = g_PwmController[self->Index].theoryFreq;
 
-    ptr_TIM_TypeDef treg = pwmController(self->Index).timerdef;
+    ptr_TIM_TypeDef treg = g_PwmController[self->Index].timerdef;
 
     STM32F4_Pwm_GetScaleFactor(freq, period, scale);
 
@@ -226,7 +228,7 @@ double STM32F4_Pwm_GetActualFrequency(const TinyCLR_Pwm_Provider* self) {
         }
     }
 
-    if (pwmController(self->Index).timer != 2 && pwmController(self->Index).timer != 5) { // 16 bit timer
+    if (g_PwmController[self->Index].timer != 2 && g_PwmController[self->Index].timer != 5) { // 16 bit timer
         while (p >= 0x10000) { // period too large
             if (pre > 0x8000) return 0;
             pre <<= 1;
@@ -256,15 +258,15 @@ double STM32F4_Pwm_GetActualFrequency(const TinyCLR_Pwm_Provider* self) {
         actualFreq = (double)(scale / period2);
     }
 
-    pwmController(self->Index).actualFreq = actualFreq;
-    pwmController(self->Index).period = p;
-    pwmController(self->Index).presc = pre;
+    g_PwmController[self->Index].actualFreq = actualFreq;
+    g_PwmController[self->Index].period = p;
+    g_PwmController[self->Index].presc = pre;
 
     return actualFreq;
 }
 
 TinyCLR_Result STM32F4_Pwm_EnablePin(const TinyCLR_Pwm_Provider* self, int32_t pin) {
-    ptr_TIM_TypeDef treg = pwmController(self->Index).timerdef;
+    ptr_TIM_TypeDef treg = g_PwmController[self->Index].timerdef;
 
     auto actualPin = STM32F4_Pwm_GetGpioPinForChannel(self, pin);
 
@@ -285,7 +287,7 @@ TinyCLR_Result STM32F4_Pwm_EnablePin(const TinyCLR_Pwm_Provider* self, int32_t p
 }
 
 TinyCLR_Result STM32F4_Pwm_DisablePin(const TinyCLR_Pwm_Provider* self, int32_t pin) {
-    ptr_TIM_TypeDef treg = pwmController(self->Index).timerdef;
+    ptr_TIM_TypeDef treg = g_PwmController[self->Index].timerdef;
 
     auto actualPin = STM32F4_Pwm_GetGpioPinForChannel(self, pin);
 
@@ -308,11 +310,11 @@ int32_t STM32F4_Pwm_GetPinCount(const TinyCLR_Pwm_Provider* self) {
 }
 
 STM32F4_Gpio_Pin* STM32F4_Pwm_GetGpioPinForChannel(const TinyCLR_Pwm_Provider* self, int32_t pin) {
-    return &(pwmController(self->Index).gpioPin[pin]);
+    return &(g_PwmController[self->Index].gpioPin[pin]);
 }
 
 double STM32F4_Pwm_GetMaxFrequency(const TinyCLR_Pwm_Provider* self) {
-    ptr_TIM_TypeDef treg = pwmController(self->Index).timerdef;
+    ptr_TIM_TypeDef treg = g_PwmController[self->Index].timerdef;
 
     if ((uint32_t)treg & 0x10000)
         return STM32F4_APB2_CLOCK_HZ; // max can be Systemclock / 2 MHz on some PWM
@@ -325,17 +327,17 @@ double STM32F4_Pwm_GetMinFrequency(const TinyCLR_Pwm_Provider* self) {
 }
 
 TinyCLR_Result STM32F4_Pwm_SetPulseParameters(const TinyCLR_Pwm_Provider* self, int32_t pin, double dutyCycle, bool invertPolarity) {
-    ptr_TIM_TypeDef treg = pwmController(self->Index).timerdef;
+    ptr_TIM_TypeDef treg = g_PwmController[self->Index].timerdef;
 
-    uint32_t duration = (uint32_t)(dutyCycle * pwmController(self->Index).period);
+    uint32_t duration = (uint32_t)(dutyCycle * g_PwmController[self->Index].period);
 
-    if (duration > pwmController(self->Index).period)
-        duration = pwmController(self->Index).period;
+    if (duration > g_PwmController[self->Index].period)
+        duration = g_PwmController[self->Index].period;
 
-    treg->PSC = pwmController(self->Index).presc - 1;
-    treg->ARR = pwmController(self->Index).period - 1;
+    treg->PSC = g_PwmController[self->Index].presc - 1;
+    treg->ARR = g_PwmController[self->Index].period - 1;
 
-    if (pwmController(self->Index).timer == 2 || pwmController(self->Index).timer == 5) {
+    if (g_PwmController[self->Index].timer == 2 || g_PwmController[self->Index].timer == 5) {
         if (pin == 0)
             treg->CCR1 = duration;
         else if (pin == 1)
@@ -358,11 +360,11 @@ TinyCLR_Result STM32F4_Pwm_SetPulseParameters(const TinyCLR_Pwm_Provider* self, 
         treg->CCER &= ~invBit;
     }
 
-    if (duration != (uint32_t)(pwmController(self->Index).dutyCycle[pin] * pwmController(self->Index).period))
+    if (duration != (uint32_t)(g_PwmController[self->Index].dutyCycle[pin] * g_PwmController[self->Index].period))
         treg->EGR = TIM_EGR_UG; // enforce register update - update immidiately any changes
 
-    pwmController(self->Index).invert[pin] = invertPolarity;
-    pwmController(self->Index).dutyCycle[pin] = dutyCycle;
+    g_PwmController[self->Index].invert[pin] = invertPolarity;
+    g_PwmController[self->Index].dutyCycle[pin] = dutyCycle;
 
     return TinyCLR_Result::Success;
 
@@ -370,20 +372,20 @@ TinyCLR_Result STM32F4_Pwm_SetPulseParameters(const TinyCLR_Pwm_Provider* self, 
 
 TinyCLR_Result STM32F4_Pwm_SetDesiredFrequency(const TinyCLR_Pwm_Provider* self, double& frequency) {
     // If current frequency is same with desired frequency, no need to re-calculate
-    if (pwmController(self->Index).theoryFreq == frequency) {
+    if (g_PwmController[self->Index].theoryFreq == frequency) {
         return TinyCLR_Result::Success;
     }
 
     // If detected a different, save desired frequency
-    pwmController(self->Index).theoryFreq = frequency;
+    g_PwmController[self->Index].theoryFreq = frequency;
 
     // Calculate actual frequency base on desired frequency
     frequency = STM32F4_Pwm_GetActualFrequency(self);
 
     // Update channel if frequency had different
     for (int p = 0; p < PWM_PER_CONTROLLER; p++)
-        if (pwmController(self->Index).gpioPin[p].number != PIN_NONE)
-            if (STM32F4_Pwm_SetPulseParameters(self, p, pwmController(self->Index).dutyCycle[p], pwmController(self->Index).invert[p]) != TinyCLR_Result::Success)
+        if (g_PwmController[self->Index].gpioPin[p].number != PIN_NONE)
+            if (STM32F4_Pwm_SetPulseParameters(self, p, g_PwmController[self->Index].dutyCycle[p], g_PwmController[self->Index].invert[p]) != TinyCLR_Result::Success)
                 return TinyCLR_Result::InvalidOperation;
 
     return TinyCLR_Result::Success;
@@ -426,44 +428,30 @@ void STM32F4_Pwm_Reset() {
 #endif
 
     for (auto controller = 0u; controller < TOTAL_PWM_CONTROLLER; controller++) {
-        auto& c = g_PwmController[controller];
-
-        c.actualFreq = 0.0;
-        c.theoryFreq = 0.0;
-        c.period = 0;
-        c.presc = 0;
-        c.timer = controller + 1;
-
-        for (auto i = 0; i < PWM_PER_CONTROLLER; i++) {
-            c.invert[0] = false;
-            c.dutyCycle[0] = 0.0;
-
-            c.gpioPin[i].number = pwmPins[controller][i].number;
-            c.gpioPin[i].alternateFunction = pwmPins[controller][i].alternateFunction;
-        }
-
         STM32F4_Pwm_ResetController(controller);
-
-        for (int p = 0; p < PWM_PER_CONTROLLER; p++) {
-            if (pwmController(controller).gpioPin[p].number != PIN_NONE) {
-                STM32F4_Pwm_DisablePin(pwmProviders[controller], p);
-                STM32F4_Pwm_ReleasePin(pwmProviders[controller], p);
-            }
-        }
     }
 }
 
 void STM32F4_Pwm_ResetController(int32_t controller) {
     for (int p = 0; p < PWM_PER_CONTROLLER; p++) {
-        if (pwmController(controller).gpioPin[p].number != PIN_NONE) {
-            pwmController(controller).dutyCycle[p] = 0;
-            pwmController(controller).invert[p] = false;
+        g_PwmController[controller].gpioPin[p].number = pwmPins[controller][p].number;
+        g_PwmController[controller].gpioPin[p].alternateFunction = pwmPins[controller][p].alternateFunction;
+
+        if (g_PwmController[controller].gpioPin[p].number != PIN_NONE) {
+            g_PwmController[controller].dutyCycle[p] = 0;
+            g_PwmController[controller].invert[p] = false;
+        }
+
+        if (g_PwmController[controller].isOpened[p] == true) {
+            STM32F4_Pwm_DisablePin(pwmProviders[controller], p);
+            STM32F4_Pwm_ReleasePin(pwmProviders[controller], p);
         }
     }
 
-    pwmController(controller).theoryFreq = 0;
-    pwmController(controller).actualFreq = 0;
-    pwmController(controller).period = 0;
-    pwmController(controller).presc = 0;
+    g_PwmController[controller].theoryFreq = 0.0;
+    g_PwmController[controller].actualFreq = 0.0;
+    g_PwmController[controller].period = 0;
+    g_PwmController[controller].presc = 0;
+    g_PwmController[controller].timer = controller + 1;
 }
 

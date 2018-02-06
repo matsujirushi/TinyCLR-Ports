@@ -17,7 +17,7 @@
 #define DEVICE_TARGET AT91
 #define DEVICE_NAME "FEZHydra"
 #define DEVICE_MANUFACTURER "GHI Electronics, LLC"
-#define DEVICE_VERSION ((0ULL << 48) | (7ULL << 32) | (0ULL << 16) | (0ULL << 0))
+#define DEVICE_VERSION ((0ULL << 48) | (8ULL << 32) | (0ULL << 16) | (0ULL << 0))
 
 #define USB_DEBUGGER_VENDOR_ID 0x1B9F
 #define USB_DEBUGGER_PRODUCT_ID 0x5005
@@ -25,11 +25,11 @@
 #define UART_DEBUGGER_INDEX 0
 #define USB_DEBUGGER_INDEX 0
 
-#define DEBUGGER_SELECTOR_PIN PIN(A, 25)
+#define DEBUGGER_SELECTOR_PIN PIN(B, 9)
 #define DEBUGGER_SELECTOR_PULL TinyCLR_Gpio_PinDriveMode::InputPullUp
 #define DEBUGGER_SELECTOR_USB_STATE TinyCLR_Gpio_PinValue::High
 
-#define RUN_APP_PIN PIN(A, 4)
+#define RUN_APP_PIN PIN(B, 12)
 #define RUN_APP_PULL TinyCLR_Gpio_PinDriveMode::InputPullUp
 #define RUN_APP_STATE TinyCLR_Gpio_PinValue::High
 
@@ -39,13 +39,6 @@
 #define AT91_AHB_CLOCK_HZ (200*1000*1000) // 200 MHz
 #define AT91_SYSTEM_PERIPHERAL_CLOCK_HZ (AT91_AHB_CLOCK_HZ / 2) // 100MHz (Peripheral Clock - MCK)
 
-#define SRAM_MEMORY_BASE 0x00300000
-#define SRAM_MEMORY_SIZE (32*1024)
-#define SDRAM_MEMORY_BASE 0x20000000
-#define SDRAM_MEMORY_SIZE (4*1024*1024)
-
-#define FLASH_MEMORY_BASE 0x00000000
-#define FLASH_MEMORY_SIZE 0x00420000
 
 #define INCLUDE_GPIO
 #define AT91_GPIO_PINS  {/*      0          1          2          3          4          5          6          7          8          9          10         11         12         13         14         15         16         17         18         19         20         21         22         23         24         25         26         27         28         29         30         31      */\
@@ -57,7 +50,7 @@
 
 
 #define INCLUDE_ADC
-#define AT91_ADC_PINS { { PIN(B,11), PS(D) }, { PIN(B,12), PS(D) }, { PIN(B,13), PS(D) }, { PIN(B,14), PS(D) }, { PIN(B,15), PS(D) }, { PIN(B,16), PS(D) }, { PIN(A,17), PS(D) }, { PIN(B,6), PS(D) }, { PIN(B,7), PS(D) }, { PIN(B,8), PS(D) }, { PIN(B,9), PS(D) }, { PIN(B,10), PS(D) } }
+#define AT91_ADC_PINS { { PIN(A, 17), PS(A) }, { PIN(A, 18), PS(A) }, { PIN(A, 19), PS(A) }, { PIN(A, 20), PS(A) }, { PIN(D ,6), PS(A) }, { PIN(D, 7), PS(A) } }
 
 #define INCLUDE_I2C
 #define AT91_I2C_SCL_PINS { { PIN(A,24), PS(A) } }
@@ -76,8 +69,8 @@
 
 #define INCLUDE_UART
 #define TOTAL_UART_CONTROLLERS 4
-#define AT91_UART_TX_BUFFER_SIZE (16*1024)
-#define AT91_UART_RX_BUFFER_SIZE (16*1024)
+#define AT91_UART_DEFAULT_TX_BUFFER_SIZE  { 16*1024, 16*1024, 16*1024, 16*1024 }
+#define AT91_UART_DEFAULT_RX_BUFFER_SIZE  { 16*1024, 16*1024, 16*1024, 16*1024 }
 #define AT91_UART_TX_PINS { { PIN(A,22), PS(A) } , { PIN(A, 6), PS(A) }, { PIN(A, 11), PS(A) } , { PIN(A, 13), PS(A) } }
 #define AT91_UART_RX_PINS { { PIN(A,21), PS(A) } , { PIN(A, 7), PS(A) }, { PIN(A, 12), PS(A) } , { PIN(A, 14), PS(A) } }
 #define AT91_UART_RTS_PINS { { PIN_NONE , PS_NONE }, { PIN(A, 9), PS(A) }, { PIN_NONE , PS_NONE }, { PIN_NONE , PS_NONE } }

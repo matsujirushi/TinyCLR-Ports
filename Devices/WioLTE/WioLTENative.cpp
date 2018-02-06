@@ -161,7 +161,7 @@ TinyCLR_Result Interop_Seeed_TinyCLR_WioLTE_Seeed_TinyCLR_WioLTE_WioLTENative::s
 	}
 
 	TinyCLR_Interop_ClrValue clrStr;
-	ip->CreateString(ip, str, clrStr);
+	ip->CreateString(ip, str, strlen(str), clrStr);
 	ip->AssignObjectReference(ip, ret, clrStr.Object);
 
 }

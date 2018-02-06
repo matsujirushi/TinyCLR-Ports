@@ -62,6 +62,10 @@ TinyCLR_Result LPC17_Can_GetWriteErrorCount(const TinyCLR_Can_Provider* self, si
 TinyCLR_Result LPC17_Can_GetReadErrorCount(const TinyCLR_Can_Provider* self, size_t& count);
 TinyCLR_Result LPC17_Can_GetSourceClock(const TinyCLR_Can_Provider* self, uint32_t& sourceClock);
 TinyCLR_Result LPC17_Can_SetReadBufferSize(const TinyCLR_Can_Provider* self, size_t size);
+TinyCLR_Result LPC17_Can_GetReadBufferSize(const TinyCLR_Can_Provider* self, size_t& size);
+TinyCLR_Result LPC17_Can_SetReadBufferSize(const TinyCLR_Can_Provider* self, size_t size);
+TinyCLR_Result LPC17_Can_GetWriteBufferSize(const TinyCLR_Can_Provider* self, size_t& size);
+TinyCLR_Result LPC17_Can_SetWriteBufferSize(const TinyCLR_Can_Provider* self, size_t size);
 
 //DAC
 const TinyCLR_Api_Info* LPC17_Dac_GetApi();
@@ -172,10 +176,15 @@ void LPC17_Gpio_EnableInputPin(int32_t pin, TinyCLR_Gpio_PinDriveMode resistor);
 struct PwmController {
     int32_t                         channel[MAX_PWM_PER_CONTROLLER];
     int32_t                         match[MAX_PWM_PER_CONTROLLER];
+
     LPC17_Gpio_Pin                  gpioPin[MAX_PWM_PER_CONTROLLER];
+
     uint32_t                        outputEnabled[MAX_PWM_PER_CONTROLLER];
     uint32_t                        *matchAddress[MAX_PWM_PER_CONTROLLER];
+
     bool                            invert[MAX_PWM_PER_CONTROLLER];
+    bool                            isOpened[MAX_PWM_PER_CONTROLLER];
+
     double                          frequency;
     double                          dutyCycle[MAX_PWM_PER_CONTROLLER];
 };
@@ -248,6 +257,10 @@ TinyCLR_Result LPC17_Uart_GetIsDataTerminalReadyEnabled(const TinyCLR_Uart_Provi
 TinyCLR_Result LPC17_Uart_SetIsDataTerminalReadyEnabled(const TinyCLR_Uart_Provider* self, bool state);
 TinyCLR_Result LPC17_Uart_GetIsRequestToSendEnabled(const TinyCLR_Uart_Provider* self, bool& state);
 TinyCLR_Result LPC17_Uart_SetIsRequestToSendEnabled(const TinyCLR_Uart_Provider* self, bool state);
+TinyCLR_Result LPC17_Uart_GetReadBufferSize(const TinyCLR_Uart_Provider* self, size_t& size);
+TinyCLR_Result LPC17_Uart_SetReadBufferSize(const TinyCLR_Uart_Provider* self, size_t size);
+TinyCLR_Result LPC17_Uart_GetWriteBufferSize(const TinyCLR_Uart_Provider* self, size_t& size);
+TinyCLR_Result LPC17_Uart_SetWriteBufferSize(const TinyCLR_Uart_Provider* self, size_t size);
 
 //Deployment
 const TinyCLR_Api_Info* LPC17_Deployment_GetApi();
@@ -318,8 +331,8 @@ TinyCLR_Result LPC17_I2c_SetActiveSettings(const TinyCLR_I2c_Provider* self, int
 TinyCLR_Result LPC17_I2c_ReadTransaction(const TinyCLR_I2c_Provider* self, uint8_t* buffer, size_t& length, TinyCLR_I2c_TransferStatus& result);
 TinyCLR_Result LPC17_I2c_WriteTransaction(const TinyCLR_I2c_Provider* self, const uint8_t* buffer, size_t& length, TinyCLR_I2c_TransferStatus& result);
 TinyCLR_Result LPC17_I2c_WriteReadTransaction(const TinyCLR_I2c_Provider* self, const uint8_t* writeBuffer, size_t& writeLength, uint8_t* readBuffer, size_t& readLength, TinyCLR_I2c_TransferStatus& result);
-void LPC17_I2c_StartTransaction();
-void LPC17_I2c_StopTransaction();
+void LPC17_I2c_StartTransaction(int32_t portId);
+void LPC17_I2c_StopTransaction(int32_t portId);
 
 // Time
 const TinyCLR_Api_Info* LPC17_Time_GetApi();
@@ -377,7 +390,7 @@ TinyCLR_Display_InterfaceType LPC17_Display_GetType(const TinyCLR_Display_Provid
 //Startup
 void LPC17_Startup_Initialize();
 void LPC17_Startup_GetHeap(uint8_t*& start, size_t& length);
-void LPC17_Startup_GetDebugger(const TinyCLR_Api_Info*& api, size_t& index);
+void LPC17_Startup_GetDebuggerTransportProvider(const TinyCLR_Api_Info*& api, size_t& index);
 void LPC17_Startup_GetRunApp(bool& runApp);
 
 extern const TinyCLR_Api_Provider* apiProvider;

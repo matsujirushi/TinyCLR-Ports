@@ -80,7 +80,7 @@ void STM32F4_Time_DelayNoInterrupt(const TinyCLR_Time_Provider* self, uint64_t m
 ////////////////////////////////////////////////////////////////////////////////
 void STM32F4_Startup_Initialize();
 void STM32F4_Startup_GetHeap(uint8_t*& start, size_t& length);
-void STM32F4_Startup_GetDebugger(const TinyCLR_Api_Info*& api, size_t& index);
+void STM32F4_Startup_GetDebuggerTransportProvider(const TinyCLR_Api_Info*& api, size_t& index);
 void STM32F4_Startup_GetRunApp(bool& runApp);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -120,7 +120,10 @@ TinyCLR_Result STM32F4_Can_IsSendingAllowed(const TinyCLR_Can_Provider* self, bo
 TinyCLR_Result STM32F4_Can_GetWriteErrorCount(const TinyCLR_Can_Provider* self, size_t& count);
 TinyCLR_Result STM32F4_Can_GetReadErrorCount(const TinyCLR_Can_Provider* self, size_t& count);
 TinyCLR_Result STM32F4_Can_GetSourceClock(const TinyCLR_Can_Provider* self, uint32_t& sourceClock);
+TinyCLR_Result STM32F4_Can_GetReadBufferSize(const TinyCLR_Can_Provider* self, size_t& size);
 TinyCLR_Result STM32F4_Can_SetReadBufferSize(const TinyCLR_Can_Provider* self, size_t size);
+TinyCLR_Result STM32F4_Can_GetWriteBufferSize(const TinyCLR_Can_Provider* self, size_t& size);
+TinyCLR_Result STM32F4_Can_SetWriteBufferSize(const TinyCLR_Can_Provider* self, size_t size);
 
 ////////////////////////////////////////////////////////////////////////////////
 //DAC
@@ -220,6 +223,10 @@ TinyCLR_Result STM32F4_Uart_GetIsDataTerminalReadyEnabled(const TinyCLR_Uart_Pro
 TinyCLR_Result STM32F4_Uart_SetIsDataTerminalReadyEnabled(const TinyCLR_Uart_Provider* self, bool state);
 TinyCLR_Result STM32F4_Uart_GetIsRequestToSendEnabled(const TinyCLR_Uart_Provider* self, bool& state);
 TinyCLR_Result STM32F4_Uart_SetIsRequestToSendEnabled(const TinyCLR_Uart_Provider* self, bool state);
+TinyCLR_Result STM32F4_Uart_GetReadBufferSize(const TinyCLR_Uart_Provider* self, size_t& size);
+TinyCLR_Result STM32F4_Uart_SetReadBufferSize(const TinyCLR_Uart_Provider* self, size_t size);
+TinyCLR_Result STM32F4_Uart_GetWriteBufferSize(const TinyCLR_Uart_Provider* self, size_t& size);
+TinyCLR_Result STM32F4_Uart_SetWriteBufferSize(const TinyCLR_Uart_Provider* self, size_t size);
 
 ////////////////////////////////////////////////////////////////////////////////
 //USB Client

@@ -143,6 +143,8 @@
 #define AT91C_SHDWC__SHUTDOWN_KEY   0xA5000000   // reset key
 #define AT91C_SHDWC__SHDW           0x01         // processor reset bit
 
+extern const TinyCLR_Api_Provider* apiProvider;
+
 struct AT91_PMC {
     static const uint32_t c_Base = AT91C_BASE_PMC;
 
@@ -524,6 +526,8 @@ struct PwmController {
     AT91_Gpio_Pin                   gpioPin[MAX_PWM_PER_CONTROLLER];
 
     bool                            invert[MAX_PWM_PER_CONTROLLER];
+    bool                            isOpened[MAX_PWM_PER_CONTROLLER];
+
     double                          frequency;
     double                          dutyCycle[MAX_PWM_PER_CONTROLLER];
 };
@@ -836,6 +840,10 @@ TinyCLR_Result AT91_Uart_GetIsDataTerminalReadyEnabled(const TinyCLR_Uart_Provid
 TinyCLR_Result AT91_Uart_SetIsDataTerminalReadyEnabled(const TinyCLR_Uart_Provider* self, bool state);
 TinyCLR_Result AT91_Uart_GetIsRequestToSendEnabled(const TinyCLR_Uart_Provider* self, bool& state);
 TinyCLR_Result AT91_Uart_SetIsRequestToSendEnabled(const TinyCLR_Uart_Provider* self, bool state);
+TinyCLR_Result AT91_Uart_GetReadBufferSize(const TinyCLR_Uart_Provider* self, size_t& size);
+TinyCLR_Result AT91_Uart_SetReadBufferSize(const TinyCLR_Uart_Provider* self, size_t size);
+TinyCLR_Result AT91_Uart_GetWriteBufferSize(const TinyCLR_Uart_Provider* self, size_t& size);
+TinyCLR_Result AT91_Uart_SetWriteBufferSize(const TinyCLR_Uart_Provider* self, size_t size);
 
 //Deployment
 const TinyCLR_Api_Info* AT91_Deployment_GetApi();
@@ -1010,7 +1018,8 @@ extern TinyCLR_Interrupt_StartStopHandler AT91_Interrupt_Ended;
 // AT91_I2C
 //
 struct AT91_I2C {
-    static const uint32_t c_Base = AT91C_BASE_TWI;
+    static const uint32_t c_Base0 = AT91C_BASE_TWI0;
+    static const uint32_t c_Base1 = AT91C_BASE_TWI1;
 
     //--//
 
@@ -1498,7 +1507,7 @@ struct AT91_WATCHDOG {
 //Startup
 void AT91_Startup_Initialize();
 void AT91_Startup_GetHeap(uint8_t*& start, size_t& length);
-void AT91_Startup_GetDebugger(const TinyCLR_Api_Info*& api, size_t& index);
+void AT91_Startup_GetDebuggerTransportProvider(const TinyCLR_Api_Info*& api, size_t& index);
 void AT91_Startup_GetRunApp(bool& runApp);
 
 struct AT91 {
@@ -1511,7 +1520,7 @@ struct AT91 {
     //    static AT91_PWM     & PWM()             { return *(AT91_PWM     *)(size_t)(      AT91_PWM     ::c_Base                                      ); }
     //    static AT91_DMA     & DMA()             { return *(AT91_DMA     *)(size_t)(      AT91_DMA     ::c_Base                                      ); }
 
-    static AT91_I2C     & I2C() { return *(AT91_I2C     *)(size_t)(AT91_I2C::c_Base); }
+    static AT91_I2C     & I2C(int sel) { return *(AT91_I2C     *)(size_t)(sel == 0 ? AT91_I2C::c_Base0 : AT91_I2C::c_Base1); }
     static AT91_AIC     & AIC() { return *(AT91_AIC     *)(size_t)(AT91_AIC::c_Base); }
     static AT91_PIO     & PIO(int sel) { return *(AT91_PIO     *)(size_t)(AT91_PIO::c_Base + AT91_PIO::c_Base_Offset * sel); }
     static AT91_PMC     & PMC() { return *(AT91_PMC     *)(size_t)(AT91_PMC::c_Base); }

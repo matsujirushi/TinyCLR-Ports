@@ -212,6 +212,9 @@ TinyCLR_Result LPC24_Can_GetWriteErrorCount(const TinyCLR_Can_Provider* self, si
 TinyCLR_Result LPC24_Can_GetReadErrorCount(const TinyCLR_Can_Provider* self, size_t& count);
 TinyCLR_Result LPC24_Can_GetSourceClock(const TinyCLR_Can_Provider* self, uint32_t& sourceClock);
 TinyCLR_Result LPC24_Can_SetReadBufferSize(const TinyCLR_Can_Provider* self, size_t size);
+TinyCLR_Result LPC24_Can_GetReadBufferSize(const TinyCLR_Can_Provider* self, size_t& size);
+TinyCLR_Result LPC24_Can_GetWriteBufferSize(const TinyCLR_Can_Provider* self, size_t& size);
+TinyCLR_Result LPC24_Can_SetWriteBufferSize(const TinyCLR_Can_Provider* self, size_t size);
 
 //DAC
 const TinyCLR_Api_Info* LPC24_Dac_GetApi();
@@ -230,10 +233,15 @@ int32_t LPC24_Dac_GetMaxValue(const TinyCLR_Dac_Provider* self);
 struct PwmController {
     int32_t                     channel[MAX_PWM_PER_CONTROLLER];
     int32_t                     match[MAX_PWM_PER_CONTROLLER];
+
     LPC24_Gpio_Pin              gpioPin[MAX_PWM_PER_CONTROLLER];
+
     uint32_t                    outputEnabled[MAX_PWM_PER_CONTROLLER];
     uint32_t                    *matchAddress[MAX_PWM_PER_CONTROLLER];
+
     bool                        invert[MAX_PWM_PER_CONTROLLER];
+    bool                        isOpened[MAX_PWM_PER_CONTROLLER];
+
     double                      frequency;
     double                      dutyCycle[MAX_PWM_PER_CONTROLLER];
 };
@@ -305,6 +313,10 @@ TinyCLR_Result LPC24_Uart_GetIsDataTerminalReadyEnabled(const TinyCLR_Uart_Provi
 TinyCLR_Result LPC24_Uart_SetIsDataTerminalReadyEnabled(const TinyCLR_Uart_Provider* self, bool state);
 TinyCLR_Result LPC24_Uart_GetIsRequestToSendEnabled(const TinyCLR_Uart_Provider* self, bool& state);
 TinyCLR_Result LPC24_Uart_SetIsRequestToSendEnabled(const TinyCLR_Uart_Provider* self, bool state);
+TinyCLR_Result LPC24_Uart_GetReadBufferSize(const TinyCLR_Uart_Provider* self, size_t& size);
+TinyCLR_Result LPC24_Uart_SetReadBufferSize(const TinyCLR_Uart_Provider* self, size_t size);
+TinyCLR_Result LPC24_Uart_GetWriteBufferSize(const TinyCLR_Uart_Provider* self, size_t& size);
+TinyCLR_Result LPC24_Uart_SetWriteBufferSize(const TinyCLR_Uart_Provider* self, size_t size);
 
 //Deployment
 const TinyCLR_Api_Info* LPC24_Deployment_GetApi();
@@ -379,8 +391,8 @@ TinyCLR_Result LPC24_I2c_SetActiveSettings(const TinyCLR_I2c_Provider* self, int
 TinyCLR_Result LPC24_I2c_ReadTransaction(const TinyCLR_I2c_Provider* self, uint8_t* buffer, size_t& length, TinyCLR_I2c_TransferStatus& result);
 TinyCLR_Result LPC24_I2c_WriteTransaction(const TinyCLR_I2c_Provider* self, const uint8_t* buffer, size_t& length, TinyCLR_I2c_TransferStatus& result);
 TinyCLR_Result LPC24_I2c_WriteReadTransaction(const TinyCLR_I2c_Provider* self, const uint8_t* writeBuffer, size_t& writeLength, uint8_t* readBuffer, size_t& readLength, TinyCLR_I2c_TransferStatus& result);
-void LPC24_I2c_StartTransaction();
-void LPC24_I2c_StopTransaction();
+void LPC24_I2c_StartTransaction(int32_t portId);
+void LPC24_I2c_StopTransaction(int32_t portId);
 
 // Time
 const TinyCLR_Api_Info* LPC24_Time_GetApi();
@@ -491,7 +503,7 @@ TinyCLR_Display_InterfaceType LPC24_Display_GetType(const TinyCLR_Display_Provid
 void LPC24_Startup_Initialize();
 void LPC24_Startup_GetHeap(uint8_t*& start, size_t& length);
 int32_t LPC24_Startup_GetDeviceId();
-void LPC24_Startup_GetDebugger(const TinyCLR_Api_Info*& api, size_t& index);
+void LPC24_Startup_GetDebuggerTransportProvider(const TinyCLR_Api_Info*& api, size_t& index);
 void LPC24_Startup_GetRunApp(bool& runApp);
 
 
@@ -745,21 +757,21 @@ struct LPC24XX_TIMER {
     //functions.
     static uint32_t inline getIntNo(int Timer) {
         switch (Timer) {
-            case  c_Timer_0:
-                return LPC24XX_VIC::c_IRQ_INDEX_TIMER0;
-                break;
-            case  c_Timer_1:
-                return LPC24XX_VIC::c_IRQ_INDEX_TIMER1;
-                break;
-            case  c_Timer_2:
-                return LPC24XX_VIC::c_IRQ_INDEX_TIMER2;
-                break;
-            case  c_Timer_3:
-                return LPC24XX_VIC::c_IRQ_INDEX_TIMER3;
-                break;
-            default:
-                return(Timer);
-                break;
+        case  c_Timer_0:
+            return LPC24XX_VIC::c_IRQ_INDEX_TIMER0;
+            break;
+        case  c_Timer_1:
+            return LPC24XX_VIC::c_IRQ_INDEX_TIMER1;
+            break;
+        case  c_Timer_2:
+            return LPC24XX_VIC::c_IRQ_INDEX_TIMER2;
+            break;
+        case  c_Timer_3:
+            return LPC24XX_VIC::c_IRQ_INDEX_TIMER3;
+            break;
+        default:
+            return(Timer);
+            break;
         }
     }
 };
@@ -891,21 +903,21 @@ struct LPC24XX_USART {
     //functions.
     static uint32_t inline getIntNo(int ComPortNum) {
         switch (ComPortNum) {
-            case c_Uart_0:
-                return LPC24XX_VIC::c_IRQ_INDEX_UART0;
-                break;
-            case c_Uart_1:
-                return LPC24XX_VIC::c_IRQ_INDEX_UART1;
-                break;
-            case c_Uart_2:
-                return LPC24XX_VIC::c_IRQ_INDEX_UART2;
-                break;
-            case c_Uart_3:
-                return LPC24XX_VIC::c_IRQ_INDEX_UART3;
-                break;
-            default:
-                return(ComPortNum);
-                break;
+        case c_Uart_0:
+            return LPC24XX_VIC::c_IRQ_INDEX_UART0;
+            break;
+        case c_Uart_1:
+            return LPC24XX_VIC::c_IRQ_INDEX_UART1;
+            break;
+        case c_Uart_2:
+            return LPC24XX_VIC::c_IRQ_INDEX_UART2;
+            break;
+        case c_Uart_3:
+            return LPC24XX_VIC::c_IRQ_INDEX_UART3;
+            break;
+        default:
+            return(ComPortNum);
+            break;
         }
     }
 };
@@ -976,8 +988,11 @@ struct LPC24XX_WATCHDOG {
 // I2C
 //
 struct LPC24XX_I2C {
-    static const uint32_t c_I2C_Base = 0xE001C000;
-    static const uint32_t c_I2C_Clk_KHz = SYSTEM_CLOCK_HZ/1000;
+    static const uint32_t c_I2C0_Base = 0xE001C000;
+    static const uint32_t c_I2C1_Base = 0xE005C000;
+    static const uint32_t c_I2C2_Base = 0xE0080000;
+
+    static const uint32_t c_I2C_Clk_KHz = SYSTEM_CLOCK_HZ / 1000;
 
     /****/ volatile uint32_t I2CONSET;
     static const    uint32_t I2EN = 0x00000040;
@@ -1010,7 +1025,7 @@ struct LPC24XX_SPI {
     static const uint32_t c_SPI0_Base = 0xE0068000;
     static const uint32_t c_SPI1_Base = 0xE0030000;
 
-    static const uint32_t c_SPI_Clk_KHz = (LPC24_AHB_CLOCK_HZ/1000);
+    static const uint32_t c_SPI_Clk_KHz = (LPC24_AHB_CLOCK_HZ / 1000);
     static const uint32_t c_SPI0 = 0;
     static const uint32_t c_SPI1 = 1;
 
@@ -1045,16 +1060,11 @@ struct LPC24XX_SPI {
 
 struct LPC24XX {
     static LPC24XX_VIC    & VIC() { return *(LPC24XX_VIC    *)(size_t)(LPC24XX_VIC::c_VIC_Base); }
-    //static LPC24XX_GPIO   & GPIO   (         ) { return *(LPC24XX_GPIO   *)(size_t)(      LPC24XX_GPIO  ::c_GPIO_Base                                 ); }
-    //static LPC24XX_GPIOIRQ   & GPIOIRQ   (         ) { return *(LPC24XX_GPIOIRQ   *)(size_t)(      LPC24XX_GPIOIRQ  ::c_GPIOIRQ_Base                                 ); }
     static LPC24XX_PCB    & PCB() { return *(LPC24XX_PCB    *)(size_t)(LPC24XX_PCB::c_PCB_Base); }
     static LPC24XX_SYSCON & SYSCON() { return *(LPC24XX_SYSCON *)(size_t)(LPC24XX_SYSCON::c_SYSCON_Base); }
-    //static LPC24XX_EMC    & EMC    (         ) { return *(LPC24XX_EMC    *)(size_t)(      LPC24XX_EMC   ::c_EMC_Base                                  ); }
     static LPC24XX_SPI    & SPI(int sel) { return *(LPC24XX_SPI    *)(size_t)((sel == 0) ? (LPC24XX_SPI::c_SPI0_Base) : (LPC24XX_SPI::c_SPI1_Base)); }
-    static LPC24XX_I2C    & I2C() { return *(LPC24XX_I2C    *)(size_t)(LPC24XX_I2C::c_I2C_Base); }
+    static LPC24XX_I2C    & I2C(int sel) { return *(LPC24XX_I2C    *)(size_t)((sel == 0) ? (LPC24XX_I2C::c_I2C0_Base) : (sel == 1 ? (LPC24XX_I2C::c_I2C1_Base) : (LPC24XX_I2C::c_I2C2_Base))); }
     static LPC24XX_WATCHDOG & WTDG() { return *(LPC24XX_WATCHDOG *)(size_t)(LPC24XX_WATCHDOG::c_WATCHDOG_Base); }
-    //static LPC24XX_DAC    & DAC    (         ) { return *(LPC24XX_DAC    *)(size_t)(      LPC24XX_DAC   ::c_DAC_Base                                  ); }
-
 
     static LPC24XX_TIMER  & TIMER(int sel) {
 

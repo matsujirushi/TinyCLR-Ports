@@ -21,7 +21,7 @@
 #define DEVICE_TARGET STM32F4
 #define DEVICE_NAME "G30"
 #define DEVICE_MANUFACTURER "GHI Electronics, LLC"
-#define DEVICE_VERSION ((0ULL << 48) | (7ULL << 32) | (0ULL << 16) | (0ULL << 0))
+#define DEVICE_VERSION ((0ULL << 48) | (8ULL << 32) | (0ULL << 16) | (0ULL << 0))
 
 #define USB_DEBUGGER_VENDOR_ID 0x1B9F
 #define USB_DEBUGGER_PRODUCT_ID 0x500A
@@ -68,7 +68,7 @@
                           /* TIM1  */ { { PIN(A,  8), AF(1)   }, { PIN(A,  9), AF(1)   }, { PIN(A, 10), AF(1)   }, { PIN_NONE ,  AF_NONE } },\
                           /* TIM2  */ { { PIN(A,  0), AF(1)   }, { PIN(A,  1), AF(1)   }, { PIN(A,  2), AF(1)   }, { PIN(A,  3), AF(1)   } },\
                           /* TIM3  */ { { PIN(C,  6), AF(2)   }, { PIN(C,  7), AF(2)   }, { PIN(C,  8), AF(2)   }, { PIN(C,  9), AF(2)   } },\
-                          /* TIM4  */ { { PIN(B,  7), AF(2)   }, { PIN(B,  7), AF(2)   }, { PIN(B,  8), AF(2)   }, { PIN(B,  9), AF(2)   } },\
+                          /* TIM4  */ { { PIN(B,  6), AF(2)   }, { PIN(B,  7), AF(2)   }, { PIN(B,  8), AF(2)   }, { PIN(B,  9), AF(2)   } },\
                          }
 
 #define INCLUDE_SPI
@@ -77,8 +77,8 @@
 #define STM32F4_SPI_MOSI_PINS { { PIN(B, 5), AF(5) }, { PIN(B, 15), AF(5) } }
 
 #define INCLUDE_UART
-#define STM32F4_UART_TX_BUFFER_SIZE 256
-#define STM32F4_UART_RX_BUFFER_SIZE 512
+#define STM32F4_UART_DEFAULT_TX_BUFFER_SIZE  { 256, 256 }
+#define STM32F4_UART_DEFAULT_RX_BUFFER_SIZE  { 512, 512 }
 #define STM32F4_UART_TX_PINS  { { PIN(A,  9), AF(7)   }, { PIN(A, 2), AF(7) } }
 #define STM32F4_UART_RX_PINS  { { PIN(A, 10), AF(7)   }, { PIN(A, 3), AF(7) } }
 #define STM32F4_UART_CTS_PINS { { PIN_NONE  , AF_NONE }, { PIN(A, 0), AF(7) } }

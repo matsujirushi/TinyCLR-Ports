@@ -30,8 +30,6 @@ struct LPC17xx_USART {
     static const uint32_t c_UartBase_3 = 0x4009C000;
     static const uint32_t c_UartBase_4 = 0x400A4000;
 
-
-
     static const uint32_t c_ClockRate = LPC17_SYSTEM_CLOCK_HZ / 2;
 
     static const uint32_t c_MAX_BAUDRATE = c_ClockRate / 16;
@@ -186,17 +184,22 @@ struct LPC17xx_USART {
     }
 };
 
+static const uint32_t g_LPC17_Uart_TxDefaultBuffersSize[] = LPC17_UART_DEFAULT_TX_BUFFER_SIZE;
+static const uint32_t g_LPC17_Uart_RxDefaultBuffersSize[] = LPC17_UART_DEFAULT_RX_BUFFER_SIZE;
+
 struct UartController {
-    uint8_t                             TxBuffer[LPC17_UART_TX_BUFFER_SIZE];
-    uint8_t                             RxBuffer[LPC17_UART_RX_BUFFER_SIZE];
+    uint8_t                             *TxBuffer;
+    uint8_t                             *RxBuffer;
 
     size_t                              txBufferCount;
     size_t                              txBufferIn;
     size_t                              txBufferOut;
+    size_t                              txBufferSize;
 
     size_t                              rxBufferCount;
     size_t                              rxBufferIn;
     size_t                              rxBufferOut;
+    size_t                              rxBufferSize;
 
     bool                                isOpened;
     bool                                handshakeEnable;
@@ -248,6 +251,10 @@ const TinyCLR_Api_Info* LPC17_Uart_GetApi() {
         uartProviders[i]->SetIsDataTerminalReadyEnabled = LPC17_Uart_SetIsDataTerminalReadyEnabled;
         uartProviders[i]->GetIsRequestToSendEnabled = LPC17_Uart_GetIsRequestToSendEnabled;
         uartProviders[i]->SetIsRequestToSendEnabled = LPC17_Uart_SetIsRequestToSendEnabled;
+        uartProviders[i]->GetReadBufferSize = LPC17_Uart_GetReadBufferSize;
+        uartProviders[i]->SetReadBufferSize = LPC17_Uart_SetReadBufferSize;
+        uartProviders[i]->GetWriteBufferSize = LPC17_Uart_GetWriteBufferSize;
+        uartProviders[i]->SetWriteBufferSize = LPC17_Uart_SetWriteBufferSize;
     }
 
     uartApi.Author = "GHI Electronics, LLC";
@@ -257,7 +264,67 @@ const TinyCLR_Api_Info* LPC17_Uart_GetApi() {
     uartApi.Count = TOTAL_UART_CONTROLLERS;
     uartApi.Implementation = uartProviders;
 
+    LPC17_Uart_Reset();
+
     return &uartApi;
+}
+
+TinyCLR_Result LPC17_Uart_GetReadBufferSize(const TinyCLR_Uart_Provider* self, size_t& size) {
+    size = g_UartController[self->Index].rxBufferSize;
+
+    return TinyCLR_Result::Success;
+}
+
+TinyCLR_Result LPC17_Uart_SetReadBufferSize(const TinyCLR_Uart_Provider* self, size_t size) {
+    auto memoryProvider = (const TinyCLR_Memory_Provider*)apiProvider->FindDefault(apiProvider, TinyCLR_Api_Type::MemoryProvider);
+
+    if (size <= 0)
+        return TinyCLR_Result::ArgumentInvalid;
+
+    if (g_UartController[self->Index].rxBufferSize) {
+        memoryProvider->Free(memoryProvider, g_UartController[self->Index].RxBuffer);
+    }
+
+    g_UartController[self->Index].rxBufferSize = size;
+
+    g_UartController[self->Index].RxBuffer = (uint8_t*)memoryProvider->Allocate(memoryProvider, size);
+
+    if (g_UartController[self->Index].RxBuffer == nullptr) {
+        g_UartController[self->Index].rxBufferSize = 0;
+
+        return TinyCLR_Result::OutOfMemory;
+    }
+
+    return TinyCLR_Result::Success;
+}
+
+TinyCLR_Result LPC17_Uart_GetWriteBufferSize(const TinyCLR_Uart_Provider* self, size_t& size) {
+    size = g_UartController[self->Index].txBufferSize;
+
+    return TinyCLR_Result::Success;
+}
+
+TinyCLR_Result LPC17_Uart_SetWriteBufferSize(const TinyCLR_Uart_Provider* self, size_t size) {
+    auto memoryProvider = (const TinyCLR_Memory_Provider*)apiProvider->FindDefault(apiProvider, TinyCLR_Api_Type::MemoryProvider);
+
+    if (size <= 0)
+        return TinyCLR_Result::ArgumentInvalid;
+
+    if (g_UartController[self->Index].txBufferSize) {
+        memoryProvider->Free(memoryProvider, g_UartController[self->Index].TxBuffer);
+    }
+
+    g_UartController[self->Index].txBufferSize = size;
+
+    g_UartController[self->Index].TxBuffer = (uint8_t*)memoryProvider->Allocate(memoryProvider, size);
+
+    if (g_UartController[self->Index].TxBuffer == nullptr) {
+        g_UartController[self->Index].txBufferSize = 0;
+
+        return TinyCLR_Result::OutOfMemory;
+    }
+
+    return TinyCLR_Result::Success;
 }
 
 
@@ -330,7 +397,7 @@ void LPC17_Uart_ReceiveData(int portNum, uint32_t LSR_Value, uint32_t IIR_Value)
                 uint8_t rxdata = (uint8_t)USARTC.SEL1.RBR.UART_RBR;
 
                 if (0 == (LSR_Value & (LPC17xx_USART::UART_LSR_PEI | LPC17xx_USART::UART_LSR_OEI | LPC17xx_USART::UART_LSR_FEI))) {
-                    if (g_UartController[portNum].rxBufferCount == LPC17_UART_RX_BUFFER_SIZE) {
+                    if (g_UartController[portNum].rxBufferCount == g_UartController[portNum].rxBufferSize) {
                         UART_SetErrorEvent(portNum, TinyCLR_Uart_Error::ReceiveFull);
 
                         continue;
@@ -340,7 +407,7 @@ void LPC17_Uart_ReceiveData(int portNum, uint32_t LSR_Value, uint32_t IIR_Value)
 
                     g_UartController[portNum].rxBufferCount++;
 
-                    if (g_UartController[portNum].rxBufferIn == LPC17_UART_RX_BUFFER_SIZE)
+                    if (g_UartController[portNum].rxBufferIn == g_UartController[portNum].rxBufferSize)
                         g_UartController[portNum].rxBufferIn = 0;
 
                     if (g_UartController[portNum].dataReceivedEventHandler != nullptr)
@@ -378,7 +445,7 @@ void LPC17_Uart_TransmitData(int portNum, uint32_t LSR_Value, uint32_t IIR_Value
 
                 g_UartController[portNum].txBufferCount--;
 
-                if (g_UartController[portNum].txBufferOut == LPC17_UART_TX_BUFFER_SIZE)
+                if (g_UartController[portNum].txBufferOut == g_UartController[portNum].txBufferSize)
                     g_UartController[portNum].txBufferOut = 0;
 
                 USARTC.SEL1.THR.UART_THR = txdata; // write TX data
@@ -400,6 +467,10 @@ void UART_IntHandler(int portNum) {
 
     volatile uint32_t LSR_Value = USARTC.UART_LSR;           // Store LSR value since it's Read-to-Clear
     volatile uint32_t IIR_Value = USARTC.SEL3.IIR.UART_IIR & LPC17xx_USART::UART_IIR_IID_mask;
+
+    if (g_UartController[portNum].handshakeEnable) {
+        volatile bool dump = USARTC.UART_MSR; // Clr status register
+    }
 
     if (LSR_Value & 0x04) {
         UART_SetErrorEvent(portNum, TinyCLR_Uart_Error::ReceiveParity);
@@ -616,7 +687,7 @@ TinyCLR_Result LPC17_Uart_SetActiveSettings(const TinyCLR_Uart_Provider* self, u
         return TinyCLR_Result::NotSupported;
     }
 
-    if (handshaking != TinyCLR_Uart_Handshake::None && portNum != 2) // Only port 2 support handshaking
+    if (handshaking != TinyCLR_Uart_Handshake::None && portNum != 1) // Only port 2 support handshaking
         return TinyCLR_Result::NotSupported;
 
 
@@ -666,6 +737,32 @@ TinyCLR_Result LPC17_Uart_SetActiveSettings(const TinyCLR_Uart_Provider* self, u
 
     default:
         return TinyCLR_Result::ArgumentOutOfRange;
+    }
+
+    auto memoryProvider = (const TinyCLR_Memory_Provider*)apiProvider->FindDefault(apiProvider, TinyCLR_Api_Type::MemoryProvider);
+
+    if (g_UartController[portNum].txBufferSize == 0) {
+        g_UartController[portNum].txBufferSize = g_LPC17_Uart_TxDefaultBuffersSize[portNum];
+
+        g_UartController[self->Index].TxBuffer = (uint8_t*)memoryProvider->Allocate(memoryProvider, g_UartController[portNum].txBufferSize);
+
+        if (g_UartController[self->Index].TxBuffer == nullptr) {
+            g_UartController[self->Index].txBufferSize = 0;
+
+            return TinyCLR_Result::OutOfMemory;
+        }
+    }
+
+    if (g_UartController[portNum].rxBufferSize == 0) {
+        g_UartController[portNum].rxBufferSize = g_LPC17_Uart_RxDefaultBuffersSize[portNum];
+
+        g_UartController[self->Index].RxBuffer = (uint8_t*)memoryProvider->Allocate(memoryProvider, g_UartController[portNum].rxBufferSize);
+
+        if (g_UartController[self->Index].RxBuffer == nullptr) {
+            g_UartController[self->Index].rxBufferSize = 0;
+
+            return TinyCLR_Result::OutOfMemory;
+        }
     }
 
     USARTC.UART_TER = LPC17xx_USART::UART_TER_TXEN;
@@ -726,6 +823,21 @@ TinyCLR_Result LPC17_Uart_Release(const TinyCLR_Uart_Provider* self) {
     g_UartController[portNum].rxBufferCount = 0;
     g_UartController[portNum].rxBufferIn = 0;
     g_UartController[portNum].rxBufferOut = 0;
+    if (apiProvider != nullptr) {
+        auto memoryProvider = (const TinyCLR_Memory_Provider*)apiProvider->FindDefault(apiProvider, TinyCLR_Api_Type::MemoryProvider);
+
+        if (g_UartController[self->Index].txBufferSize != 0) {
+            memoryProvider->Free(memoryProvider, g_UartController[self->Index].TxBuffer);
+
+            g_UartController[self->Index].txBufferSize = 0;
+        }
+
+        if (g_UartController[self->Index].rxBufferSize != 0) {
+            memoryProvider->Free(memoryProvider, g_UartController[self->Index].RxBuffer);
+
+            g_UartController[self->Index].rxBufferSize = 0;
+        }
+    }
 
     g_UartController[portNum].isOpened = false;
     g_UartController[portNum].handshakeEnable = false;
@@ -791,8 +903,11 @@ TinyCLR_Result LPC17_Uart_Read(const TinyCLR_Uart_Provider* self, uint8_t* buffe
 
     DISABLE_INTERRUPTS_SCOPED(irq);
 
-    if (g_UartController[portNum].isOpened == false)
+    if (g_UartController[portNum].isOpened == false || g_UartController[self->Index].rxBufferSize == 0) {
+        length = 0;
+
         return TinyCLR_Result::NotAvailable;
+    }
 
     length = std::min(g_UartController[portNum].rxBufferCount, length);
 
@@ -803,7 +918,7 @@ TinyCLR_Result LPC17_Uart_Read(const TinyCLR_Uart_Provider* self, uint8_t* buffe
         i++;
         g_UartController[portNum].rxBufferCount--;
 
-        if (g_UartController[portNum].rxBufferOut == LPC17_UART_RX_BUFFER_SIZE)
+        if (g_UartController[portNum].rxBufferOut == g_UartController[portNum].rxBufferSize)
             g_UartController[portNum].rxBufferOut = 0;
     }
 
@@ -816,16 +931,19 @@ TinyCLR_Result LPC17_Uart_Write(const TinyCLR_Uart_Provider* self, const uint8_t
 
     DISABLE_INTERRUPTS_SCOPED(irq);
 
-    if (g_UartController[portNum].isOpened == false)
-        return TinyCLR_Result::NotAvailable;
+    if (g_UartController[portNum].isOpened == false || g_UartController[self->Index].txBufferSize == 0) {
+        length = 0;
 
-    if (g_UartController[portNum].txBufferCount == LPC17_UART_TX_BUFFER_SIZE) {
+        return TinyCLR_Result::NotAvailable;
+    }
+
+    if (g_UartController[portNum].txBufferCount == g_UartController[portNum].txBufferSize) {
         UART_SetErrorEvent(portNum, TinyCLR_Uart_Error::TransmitFull);
 
         return TinyCLR_Result::Busy;
     }
 
-    length = std::min(LPC17_UART_TX_BUFFER_SIZE - g_UartController[portNum].txBufferCount, length);
+    length = std::min(g_UartController[portNum].txBufferSize - g_UartController[portNum].txBufferCount, length);
 
 
     while (i < length) {
@@ -838,7 +956,7 @@ TinyCLR_Result LPC17_Uart_Write(const TinyCLR_Uart_Provider* self, const uint8_t
 
         g_UartController[portNum].txBufferIn++;
 
-        if (g_UartController[portNum].txBufferIn == LPC17_UART_TX_BUFFER_SIZE)
+        if (g_UartController[portNum].txBufferIn == g_UartController[portNum].txBufferSize)
             g_UartController[portNum].txBufferIn = 0;
     }
 
@@ -907,6 +1025,9 @@ TinyCLR_Result LPC17_Uart_SetIsRequestToSendEnabled(const TinyCLR_Uart_Provider*
 
 void LPC17_Uart_Reset() {
     for (auto i = 0; i < TOTAL_UART_CONTROLLERS; i++) {
+        g_UartController[i].txBufferSize = 0;
+        g_UartController[i].rxBufferSize = 0;
+
         LPC17_Uart_Release(uartProviders[i]);
     }
 }

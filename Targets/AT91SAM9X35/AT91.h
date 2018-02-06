@@ -237,23 +237,19 @@ struct AT91_PMC {
     static const    uint32_t PMC_PLLICPR__PLLA = (0x1 << 0);
     static const    uint32_t PMC_PLLICPR__PLLB = (0x1 << 16);
 
-    __inline void EnableSystemClock(uint32_t clkIds)
-    {
+    __inline void EnableSystemClock(uint32_t clkIds) {
         PMC_SCER = clkIds;
     }
 
-    __inline void DisableSystemClock(uint32_t clkIds)
-    {
+    __inline void DisableSystemClock(uint32_t clkIds) {
         PMC_SCDR = clkIds;
     }
 
-    __inline void EnablePeriphClock(uint32_t periphIds)
-    {
+    __inline void EnablePeriphClock(uint32_t periphIds) {
         PMC_PCER = (1 << periphIds);
     }
 
-    __inline void DisablePeriphClock(uint32_t periphIds)
-    {
+    __inline void DisablePeriphClock(uint32_t periphIds) {
         PMC_PCDR = (1 << periphIds);
     }
 
@@ -262,8 +258,7 @@ struct AT91_PMC {
 
 
 // MMU
-struct ARM9_MMU
-{
+struct ARM9_MMU {
     static const uint32_t c_TTB_size = 0x4000;
 
     static const uint32_t c_MMU_L1_Fault = 0x00;
@@ -525,6 +520,9 @@ TinyCLR_Result AT91_Can_GetWriteErrorCount(const TinyCLR_Can_Provider* self, siz
 TinyCLR_Result AT91_Can_GetReadErrorCount(const TinyCLR_Can_Provider* self, size_t& count);
 TinyCLR_Result AT91_Can_GetSourceClock(const TinyCLR_Can_Provider* self, uint32_t& sourceClock);
 TinyCLR_Result AT91_Can_SetReadBufferSize(const TinyCLR_Can_Provider* self, size_t size);
+TinyCLR_Result AT91_Can_GetReadBufferSize(const TinyCLR_Can_Provider* self, size_t& size);
+TinyCLR_Result AT91_Can_GetWriteBufferSize(const TinyCLR_Can_Provider* self, size_t& size);
+TinyCLR_Result AT91_Can_SetWriteBufferSize(const TinyCLR_Can_Provider* self, size_t size);
 
 //DAC
 const TinyCLR_Api_Info* AT91_Dac_GetApi();
@@ -549,6 +547,8 @@ struct PwmController {
     AT91_Gpio_Pin                   gpioPin[MAX_PWM_PER_CONTROLLER];
 
     bool                            invert[MAX_PWM_PER_CONTROLLER];
+    bool                            isOpened[MAX_PWM_PER_CONTROLLER];
+
     double                          frequency;
     double                          dutyCycle[MAX_PWM_PER_CONTROLLER];
 };
@@ -575,8 +575,7 @@ int32_t AT91_Pwm_GetPinCount(const TinyCLR_Pwm_Provider* self);
 // AT91_SPI
 //
 
-struct AT91_SPI
-{
+struct AT91_SPI {
     static const uint32_t c_Base_1 = AT91C_BASE_SPI0;
     static const uint32_t c_Base_2 = AT91C_BASE_SPI1;
 
@@ -632,8 +631,7 @@ struct AT91_SPI
     /****/ volatile uint32_t SPI_CSR2;       // Chip Select Register 2
     /****/ volatile uint32_t SPI_CSR3;       // Chip Select Register 3
 
-    __inline static uint32_t ConvertClockRateToDivisor(uint32_t clockKHz)
-    {
+    __inline static uint32_t ConvertClockRateToDivisor(uint32_t clockKHz) {
         uint32_t mckKHz = AT91_SYSTEM_PERIPHERAL_CLOCK_HZ / 1000;
         uint32_t divisor = mckKHz / clockKHz;
 
@@ -647,8 +645,7 @@ struct AT91_SPI
     }
 
     // no data in TX FIFO
-    __inline bool TransmitBufferEmpty(AT91_SPI & _SPI)
-    {
+    __inline bool TransmitBufferEmpty(AT91_SPI & _SPI) {
         return (_SPI.SPI_SR & SPI_SR_TXEMPTY) != 0;
     }
 };
@@ -865,6 +862,10 @@ TinyCLR_Result AT91_Uart_GetIsDataTerminalReadyEnabled(const TinyCLR_Uart_Provid
 TinyCLR_Result AT91_Uart_SetIsDataTerminalReadyEnabled(const TinyCLR_Uart_Provider* self, bool state);
 TinyCLR_Result AT91_Uart_GetIsRequestToSendEnabled(const TinyCLR_Uart_Provider* self, bool& state);
 TinyCLR_Result AT91_Uart_SetIsRequestToSendEnabled(const TinyCLR_Uart_Provider* self, bool state);
+TinyCLR_Result AT91_Uart_GetReadBufferSize(const TinyCLR_Uart_Provider* self, size_t& size);
+TinyCLR_Result AT91_Uart_SetReadBufferSize(const TinyCLR_Uart_Provider* self, size_t size);
+TinyCLR_Result AT91_Uart_GetWriteBufferSize(const TinyCLR_Uart_Provider* self, size_t& size);
+TinyCLR_Result AT91_Uart_SetWriteBufferSize(const TinyCLR_Uart_Provider* self, size_t size);
 
 //Deployment
 const TinyCLR_Api_Info* AT91_Deployment_GetApi();
@@ -882,8 +883,7 @@ TinyCLR_Result AT91_Flash_Reset(const TinyCLR_Deployment_Provider* self);
 //////////////////////////////////////////////////////////////////////////////
 // AT91_AIC
 //
-struct AT91_AIC
-{
+struct AT91_AIC {
     static const uint32_t c_Base = AT91C_BASE_AIC;
 
     /****/ volatile uint32_t AIC_SMR[32];    // Source Mode Register
@@ -945,10 +945,8 @@ struct AT91_AIC
     /****/ volatile uint32_t AIC_FFSR;       // Fast Forcing Status Register
 
 
-    bool IsInterruptPending()
-    {
-        if (AIC_IPR & AIC_IMR)
-        {
+    bool IsInterruptPending() {
+        if (AIC_IPR & AIC_IMR) {
             return true;
         }
 
@@ -1041,9 +1039,10 @@ extern TinyCLR_Interrupt_StartStopHandler AT91_Interrupt_Ended;
 //////////////////////////////////////////////////////////////////////////////
 // AT91_I2C
 //
-struct AT91_I2C
-{
-    static const uint32_t c_Base = AT91C_BASE_TWI;
+struct AT91_I2C {
+    static const uint32_t c_Base0 = AT91C_BASE_TWI0;
+    static const uint32_t c_Base1 = AT91C_BASE_TWI1;
+    static const uint32_t c_Base2 = AT91C_BASE_TWI2;
 
     //--//
 
@@ -1327,8 +1326,7 @@ TinyCLR_Display_InterfaceType AT91_Display_GetType(const TinyCLR_Display_Provide
 //////////////////////////////////////////////////////////////////////////////
 // WATCHDOG
 //
-struct AT91_WATCHDOG
-{
+struct AT91_WATCHDOG {
     static const uint32_t c_Base = AT91C_BASE_WDTC;
 
     //--//
@@ -1362,11 +1360,10 @@ struct AT91_WATCHDOG
 //Startup
 void AT91_Startup_Initialize();
 void AT91_Startup_GetHeap(uint8_t*& start, size_t& length);
-void AT91_Startup_GetDebugger(const TinyCLR_Api_Info*& api, size_t& index);
+void AT91_Startup_GetDebuggerTransportProvider(const TinyCLR_Api_Info*& api, size_t& index);
 void AT91_Startup_GetRunApp(bool& runApp);
 
-struct AT91
-{
+struct AT91 {
 
     static const uint32_t c_UncachableMask = 0x80000000;
 
@@ -1376,7 +1373,7 @@ struct AT91
     //    static AT91_PWM     & PWM()             { return *(AT91_PWM     *)(size_t)(      AT91_PWM     ::c_Base                                      ); }
     //    static AT91_DMA     & DMA()             { return *(AT91_DMA     *)(size_t)(      AT91_DMA     ::c_Base                                      ); }
 
-    static AT91_I2C     & I2C() { return *(AT91_I2C     *)(size_t)(AT91_I2C::c_Base); }
+    static AT91_I2C     & I2C(int sel) { return *(AT91_I2C     *)(size_t)(sel == 0 ? AT91_I2C::c_Base0 : (sel == 1 ? AT91_I2C::c_Base1 : AT91_I2C::c_Base2)); }
     static AT91_AIC     & AIC() { return *(AT91_AIC     *)(size_t)(AT91_AIC::c_Base); }
     static AT91_PIO     & PIO(int sel) { return *(AT91_PIO     *)(size_t)(AT91_PIO::c_Base + AT91_PIO::c_Base_Offset * sel); }
     static AT91_PMC     & PMC() { return *(AT91_PMC     *)(size_t)(AT91_PMC::c_Base); }
@@ -1388,8 +1385,7 @@ struct AT91
     static AT91_TC      & TIMER(int sel) { return *(AT91_TC*)(size_t)(AT91_TC::c_Base + (sel * 0x40)); }
     static AT91_WATCHDOG& WTDG() { return *(AT91_WATCHDOG*)(size_t)(AT91_WATCHDOG::c_Base); }
     //***************************************************************************************************************************************************************************************************************
-    static AT91_USART   & USART(int sel)
-    {
+    static AT91_USART   & USART(int sel) {
         if (sel == 0)
             return *(AT91_USART*)(size_t)(AT91_USART::c_Base_dbg);
         else if ((sel > 0) && (sel < 4))

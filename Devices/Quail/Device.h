@@ -21,7 +21,7 @@
 #define DEVICE_TARGET STM32F4
 #define DEVICE_NAME "Quail"
 #define DEVICE_MANUFACTURER "MikroElektronika"
-#define DEVICE_VERSION ((0ULL << 48) | (7ULL << 32) | (0ULL << 16) | (0ULL << 0))
+#define DEVICE_VERSION ((0ULL << 48) | (8ULL << 32) | (0ULL << 16) | (0ULL << 0))
 
 #define USB_DEBUGGER_VENDOR_ID 0x1B9F
 #define USB_DEBUGGER_PRODUCT_ID 0x5000
@@ -47,6 +47,11 @@
 #define STM32F4_SUPPLY_VOLTAGE_MV 3300
 
 #define INCLUDE_ADC
+
+#define INCLUDE_CAN
+#define STM32F4_CAN_BUFFER_DEFAULT_SIZE { 128 , 128 }
+#define STM32F4_CAN_TX_PINS { { PIN(D, 1), AF(9) }, { PIN(B, 13), AF(9) } }
+#define STM32F4_CAN_RX_PINS { { PIN(D, 0), AF(9) }, { PIN(B, 12), AF(9) } }
 
 #define INCLUDE_DAC
 
@@ -87,8 +92,8 @@
 #define STM32F4_SPI_MOSI_PINS { { PIN(B, 5), AF(5) }, { PIN(C,  3), AF(5) } }
 
 #define INCLUDE_UART
-#define STM32F4_UART_TX_BUFFER_SIZE 256
-#define STM32F4_UART_RX_BUFFER_SIZE 512
+#define STM32F4_UART_DEFAULT_TX_BUFFER_SIZE  { 256, 256, 256, 256 }
+#define STM32F4_UART_DEFAULT_RX_BUFFER_SIZE  { 512, 512, 512, 512 }
 #define STM32F4_UART_TX_PINS  { { PIN(A,  9), AF(7)   }, { PIN(D, 5), AF(7) }, { PIN(D,  8), AF(7) }, { PIN(A, 0), AF(8)   } }
 #define STM32F4_UART_RX_PINS  { { PIN(A, 10), AF(7)   }, { PIN(D, 6), AF(7) }, { PIN(D,  9), AF(7) }, { PIN(A, 1), AF(8)   } }
 #define STM32F4_UART_CTS_PINS { { PIN_NONE  , AF_NONE }, { PIN(D, 3), AF(7) }, { PIN(D, 11), AF(7) }, { PIN_NONE , AF_NONE } }
