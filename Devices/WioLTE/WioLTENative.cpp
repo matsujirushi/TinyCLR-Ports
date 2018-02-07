@@ -147,23 +147,18 @@ TinyCLR_Result Interop_Seeed_TinyCLR_WioLTE_Seeed_TinyCLR_WioLTE_WioLTENative::s
 	if (index == SLRE_NO_MATCH) return TinyCLR_Result::Success;
 	if (index < 0) return TinyCLR_Result::NotSupported;
 
-	char* str;
 	if (cap.ptr == NULL)
 	{
-		str = (char*)alloca(1);
-		str[0] = '\0';
+		TinyCLR_Interop_ClrValue clrStr;
+		ip->CreateString(ip, NULL, 0, clrStr);
+		ip->AssignObjectReference(ip, ret, clrStr.Object);
 	}
 	else
 	{
-		str = (char*)alloca(cap.len + 1);
-		memcpy(str, cap.ptr, cap.len);
-		str[cap.len] = '\0';
+		TinyCLR_Interop_ClrValue clrStr;
+		ip->CreateString(ip, cap.ptr, cap.len, clrStr);
+		ip->AssignObjectReference(ip, ret, clrStr.Object);
 	}
-
-	TinyCLR_Interop_ClrValue clrStr;
-	ip->CreateString(ip, str, strlen(str), clrStr);
-	ip->AssignObjectReference(ip, ret, clrStr.Object);
-
 }
 
 TinyCLR_Result Interop_Seeed_TinyCLR_WioLTE_Seeed_TinyCLR_WioLTE_WioLTENative::Init___VOID(const TinyCLR_Interop_MethodData md)
